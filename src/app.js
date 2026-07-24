@@ -233,3 +233,10 @@ async function renderApp() {
 
 window.addEventListener('hashchange', renderApp);
 renderApp();
+
+const canRegisterServiceWorker = 'serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname));
+if (canRegisterServiceWorker) {
+  navigator.serviceWorker.register('/sw.js').catch((error) => {
+    console.warn('Service Worker 注册失败，应用仍可在线运行。', error);
+  });
+}
