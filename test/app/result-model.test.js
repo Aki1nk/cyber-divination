@@ -33,3 +33,9 @@ test('result markup exposes an accessible four-tab contract', () => {
   assert.match(html, /aria-selected="true"/);
   assert.match(html, /计算依据/);
 });
+
+test('high-risk results display a professional boundary', () => {
+  const html = renderResult({ ...record, risk: { level: 'high', categories: ['medical'] } });
+  assert.match(html, /重要边界提示/);
+  assert.match(html, /合格专业人员/);
+});
