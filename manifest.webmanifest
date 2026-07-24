@@ -1,0 +1,12 @@
+{
+  "name": "赛博天师｜梅花易数 · 易经推演",
+  "short_name": "赛博天师",
+  "description": "可复核、仅本地保存的梅花易数与易经推演体验。",
+  "lang": "zh-CN",
+  "start_url": "/#/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#071311",
+  "theme_color": "#071311",
+  "orientation": "portrait-primary"
+}

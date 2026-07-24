@@ -1,0 +1,16 @@
+:root {
+  color-scheme: dark;
+  --color-ink: #071311;
+  --color-jade: #15362f;
+  --color-jade-soft: #254a42;
+  --color-gold: #b99b52;
+  --color-gold-bright: #e6ce8b;
+  --color-cinnabar: #a94537;
+  --color-text: #e8e2cf;
+  --color-muted: #91a69f;
+  --font-display: "STSong", "SimSun", serif;
+  --font-ui: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  --radius-sm: 0.75rem;
+  --radius-md: 1.25rem;
+  --shadow-glow: 0 0 2rem rgb(185 155 82 / 16%);
+}

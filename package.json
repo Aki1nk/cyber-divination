@@ -1,0 +1,10 @@
+{
+  "name": "cyber-divination",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "build": "node tools/build.mjs",
+    "dev": "node tools/dev-server.mjs --root . --port 4173"
+  }
+}
