@@ -166,6 +166,7 @@ export function createCastController({
           changedId: hexagram.changedId,
           movingLine: hexagram.movingLine,
           originalLines: [...hexagram.originalLines],
+          mutualLines: [...hexagram.mutualLines],
           changedLines: [...hexagram.changedLines],
           body: hexagram.body,
           use: hexagram.use

@@ -15,6 +15,7 @@ test('controller creates one immutable auditable number record', async () => {
 
   assert.equal(record.algorithm.id, 'number-pair-v1');
   assert.equal(record.hexagram.movingLine, 1);
+  assert.equal(record.hexagram.mutualLines.length, 6);
   assert.equal((await repository.listRecords()).length, 1);
   assert.ok(Object.isFrozen(record.snapshot));
   assert.ok(record.calculationLog.length >= 3);

@@ -1,0 +1,29 @@
+.result-view { display: grid; gap: 1rem; }
+.result-heading, .interpretation-card, .hexagram-card, .classic-stack article, .evidence-grid article, .relation-grid, .risk-banner { border: 1px solid rgb(185 155 82 / 24%); border-radius: var(--radius-md); background: rgb(11 28 24 / 78%); padding: 1rem; }
+.result-heading h1 { margin: .4rem 0; font: 600 clamp(1.45rem, 5vw, 2.3rem) var(--font-display); }
+.result-heading p, .result-heading time, .classic-stack span, .hexagram-card > span { color: var(--color-muted); }
+.result-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .35rem; position: sticky; top: 4.6rem; z-index: 4; padding: .35rem; border-radius: 999px; background: rgb(7 19 17 / 94%); }
+.result-tabs button { min-height: 2.75rem; border: 0; border-radius: 999px; color: var(--color-muted); background: transparent; }
+.result-tabs button[aria-selected="true"] { color: var(--color-ink); background: var(--color-gold-bright); }
+[data-result-panel] { display: grid; gap: 1rem; }
+[data-result-panel][hidden] { display: none; }
+.interpretation-card h2, .classic-stack h2, .evidence-grid h2 { margin-top: 0; color: var(--color-gold-bright); }
+.reason-list summary { color: var(--color-muted); cursor: pointer; }
+.reason-list code { color: var(--color-gold-bright); }
+.hexagram-grid, .classic-stack, .evidence-grid { display: grid; gap: 1rem; }
+.hexagram-card { text-align: center; }
+.hexagram-card h2 { color: var(--color-gold-bright); font-family: var(--font-display); }
+.hexagram-lines { display: flex; flex-direction: column-reverse; gap: .42rem; max-width: 10rem; margin: 1rem auto; }
+.hexagram-line { display: grid; grid-template-columns: 1fr 1fr auto; gap: .7rem; align-items: center; }
+.hexagram-line i { height: .5rem; border-radius: 999px; background: var(--color-gold-bright); }
+.hexagram-line.is-yang i:first-child { grid-column: 1 / 3; }
+.hexagram-line.is-yang i:nth-child(2) { display: none; }
+.hexagram-line.is-moving i { background: var(--color-cinnabar); box-shadow: 0 0 1rem rgb(169 69 55 / 55%); }
+.relation-grid, .evidence-grid dl { display: grid; gap: .7rem; margin: 0; }
+.relation-grid div, .evidence-grid dl div { display: flex; justify-content: space-between; gap: 1rem; }
+.relation-grid dt, .evidence-grid dt { color: var(--color-muted); }
+.relation-grid dd, .evidence-grid dd { margin: 0; text-align: right; }
+.evidence-grid pre { overflow: auto; color: var(--color-text); white-space: pre-wrap; }
+.risk-banner { border-color: rgb(169 69 55 / 70%); background: rgb(80 28 22 / 48%); }
+.risk-banner strong { color: #ffb7a9; }
+@media (min-width: 48rem) { .hexagram-grid { grid-template-columns: repeat(3, 1fr); } .evidence-grid { grid-template-columns: repeat(2, 1fr); } }
