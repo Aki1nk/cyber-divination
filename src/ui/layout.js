@@ -13,7 +13,6 @@ export function renderLayout({ routeName, content }) {
     </a>`).join('');
 
   return `
-    <a class="skip-link" href="#main-content">跳至主要内容</a>
     <div class="app-shell">
       <header class="top-bar">
         <a class="brand" href="#/" aria-label="赛博天师首页">

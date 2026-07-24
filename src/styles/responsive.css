@@ -1,0 +1,26 @@
+@media (min-width: 36rem) {
+  .main-content { padding-inline: 1.5rem; }
+  .field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .field-grid--three, .field-grid--date { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .method-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .method-card:last-child { grid-column: 1 / -1; }
+  .settings-actions { grid-template-columns: 1fr auto; align-items: center; }
+  .settings-actions p { grid-column: 1 / -1; }
+}
+@media (min-width: 48rem) {
+  .top-bar { padding-inline: 1.5rem; }
+  .main-content { padding-top: 2rem; padding-bottom: 7rem; }
+  .bottom-nav { left: 50%; right: auto; bottom: 1rem; width: min(30rem, calc(100% - 2rem)); transform: translateX(-50%); border: 1px solid rgb(185 155 82 / 22%); border-radius: 1.2rem; box-shadow: 0 1.3rem 4rem rgb(0 0 0 / 38%); }
+  .home-view { min-height: calc(100vh - 11rem); }
+  .home-lead { font-size: 1rem; }
+  .casting-form { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .casting-form .form-section:first-child, .casting-form .confirmation-card { grid-column: 1 / -1; }
+  .history-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 64rem) {
+  .top-bar { padding-inline: max(2rem, calc((100vw - var(--content-width)) / 2)); }
+  .method-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .method-card:last-child { grid-column: auto; }
+  .settings-form { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: stretch; }
+  .settings-actions { grid-column: 1 / -1; }
+}
