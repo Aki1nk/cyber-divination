@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">赛博天师图标</title>
+  <desc id="desc">玄黑底色、鎏金圆环、阴阳六爻与易字印记</desc>
+  <defs>
+    <radialGradient id="bg" cx="35%" cy="25%" r="85%"><stop stop-color="#254A42"/><stop offset=".55" stop-color="#0B211C"/><stop offset="1" stop-color="#071311"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F5E7BA"/><stop offset="1" stop-color="#B99B52"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="174" fill="none" stroke="#B99B52" stroke-width="5" opacity=".78"/>
+  <circle cx="256" cy="256" r="151" fill="none" stroke="#B99B52" stroke-width="2" stroke-dasharray="9 13" opacity=".36"/>
+  <g fill="url(#gold)">
+    <rect x="166" y="142" width="180" height="16" rx="8"/>
+    <rect x="166" y="180" width="76" height="16" rx="8"/><rect x="270" y="180" width="76" height="16" rx="8"/>
+    <rect x="166" y="218" width="180" height="16" rx="8"/>
+    <rect x="166" y="278" width="76" height="16" rx="8"/><rect x="270" y="278" width="76" height="16" rx="8"/>
+    <rect x="166" y="316" width="180" height="16" rx="8"/>
+    <rect x="166" y="354" width="76" height="16" rx="8"/><rect x="270" y="354" width="76" height="16" rx="8"/>
+  </g>
+  <circle cx="256" cy="256" r="31" fill="#071311" stroke="#E6CE8B" stroke-width="3"/>
+  <text x="256" y="270" text-anchor="middle" fill="#E6CE8B" font-size="42" font-family="STSong,SimSun,serif" font-weight="700">易</text>
+  <circle cx="377" cy="375" r="24" fill="#A94537"/><path d="M366 375h22M377 364v22" stroke="#F5E7BA" stroke-width="4" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,24 @@
+:root {
+  color-scheme: dark;
+  --color-ink: #071311;
+  --color-jade: #15362f;
+  --color-jade-soft: #254a42;
+  --color-jade-bright: #3f7468;
+  --color-gold: #b99b52;
+  --color-gold-bright: #e6ce8b;
+  --color-gold-pale: #f5e7ba;
+  --color-cinnabar: #a94537;
+  --color-text: #e8e2cf;
+  --color-muted: #91a69f;
+  --color-line: rgb(185 155 82 / 24%);
+  --color-panel: rgb(10 27 23 / 82%);
+  --font-display: "STSong", "SimSun", serif;
+  --font-ui: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  --radius-sm: 0.75rem;
+  --radius-md: 1.25rem;
+  --shadow-glow: 0 0 2rem rgb(185 155 82 / 16%);
+  --shadow-panel: 0 1.5rem 4rem rgb(0 0 0 / 24%);
+  --content-width: 66rem;
+  --top-bar-height: 4.5rem;
+  --bottom-nav-height: 4.8rem;
+}
