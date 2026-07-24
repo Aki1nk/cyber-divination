@@ -6,6 +6,7 @@ import { createSession, transition } from '../../src/app/session.js';
 test('parseRoute recognizes result ids and navigation pages', () => {
   assert.deepEqual(parseRoute('#/result/gua-1'), { name: 'result', params: { id: 'gua-1' } });
   assert.deepEqual(parseRoute('#/classics'), { name: 'classics', params: {} });
+  assert.deepEqual(parseRoute('#/privacy'), { name: 'privacy', params: {} });
   assert.deepEqual(parseRoute('#/unknown'), { name: 'home', params: {} });
 });
 

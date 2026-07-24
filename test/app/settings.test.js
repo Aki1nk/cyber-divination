@@ -20,3 +20,11 @@ test('clear records requires an explicit native dialog confirmation', () => {
   assert.match(html, /data-confirm-clear>确认清除/);
   assert.match(html, /确认清除 3 条卦录/);
 });
+
+test('settings expose privacy boundaries and visible version information', () => {
+  const html = renderSettings({}, 0);
+  assert.match(html, /href="#\/privacy"/);
+  assert.match(html, /隐私与安全边界/);
+  assert.match(html, /版本\s+1\.0\.0/);
+  assert.match(html, /构建\s+development/);
+});

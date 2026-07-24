@@ -5,9 +5,13 @@ import { access, readFile } from 'node:fs/promises';
 test('shell declares language, skip link and reduced motion', async () => {
   const html = await readFile('index.html', 'utf8');
   const css = await readFile('src/styles/ritual.css', 'utf8');
+  const ritual = await readFile('src/ui/views/ritual.js', 'utf8');
   assert.match(html, /<html lang="zh-CN">/);
   assert.match(html, /class="skip-link"/);
   assert.doesNotMatch(html, /<audio|autoplay/);
+  assert.match(html, /property="og:title"/);
+  assert.match(html, /name="robots" content="index,follow"/);
+  assert.doesNotMatch(ritual, /style=/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
 });
 

@@ -10,6 +10,7 @@ import { renderRitual } from './ui/views/ritual.js';
 import { renderResult } from './ui/views/result.js';
 import { renderHistory } from './ui/views/history.js';
 import { filterClassics, renderClassics, renderClassicsList } from './ui/views/classics.js';
+import { renderPrivacy } from './ui/views/privacy.js';
 import { DEFAULT_SETTINGS, normalizeSettings, renderSettings } from './ui/views/settings.js';
 
 const app = document.querySelector('#app');
@@ -60,6 +61,7 @@ async function routeContent(route) {
     currentClassics = (await getClassicsData()).classics;
     return renderClassics(currentClassics);
   }
+  if (route.name === 'privacy') return renderPrivacy();
   const [settings, records] = await Promise.all([repository.getSettings(), repository.listRecords()]);
   return renderSettings(settings, records.length);
 }

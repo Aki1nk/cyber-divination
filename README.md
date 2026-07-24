@@ -24,6 +24,20 @@ node tools/dev-server.mjs --root dist --port 4175
 
 `dist/` 包含完整静态资源与版本化 `sw.js`，可部署到任意支持 HTTPS 和静态文件的主机。localhost 环境也可注册 Service Worker。
 
+## 生产部署
+
+推荐通过 Git 仓库连接 Cloudflare Pages，保持构建、回滚和审计记录一致：
+
+```text
+Production branch: main
+Build command: node tools/build.mjs
+Output directory: dist
+Root directory: /
+Environment variables: none
+```
+
+构建会把 `_headers`、`robots.txt` 与带 12 位内容哈希的应用构建号写入 `dist/`。`_headers` 启用严格 CSP、点击劫持防护、权限收敛和 Service Worker 禁止缓存策略；部署后应先在 `pages.dev` 地址完成安装、离线、清除数据和高风险提示验收，再绑定正式域名。
+
 重新生成自有 PWA 图标：
 
 ```powershell

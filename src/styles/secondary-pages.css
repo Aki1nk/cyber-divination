@@ -10,18 +10,25 @@
 .history-card small, .history-card time { color: var(--color-muted); }
 .search-field { display: grid; gap: .45rem; color: var(--color-muted); }
 .search-field input, .settings-form input, .settings-form select { width: 100%; min-height: 3rem; padding: .65rem .8rem; border: 1px solid rgb(185 155 82 / 28%); border-radius: var(--radius-sm); color: var(--color-text); background: rgb(7 19 17 / 88%); }
-.classic-card, .settings-form article, .danger-zone { border: 1px solid rgb(185 155 82 / 22%); border-radius: var(--radius-md); background: rgb(11 28 24 / 75%); }
+.classic-card, .settings-form article, .policy-card, .danger-zone { border: 1px solid rgb(185 155 82 / 22%); border-radius: var(--radius-md); background: rgb(11 28 24 / 75%); }
 .classic-card summary { display: grid; grid-template-columns: auto 1fr auto; gap: .8rem; align-items: center; padding: 1rem; cursor: pointer; }
 .classic-card summary span { font-size: 2rem; color: var(--color-gold-bright); }
 .classic-card summary code { color: var(--color-muted); }
-.classic-card__body, .settings-form article, .danger-zone { padding: 1rem; }
+.classic-card__body, .settings-form article, .policy-card, .danger-zone { padding: 1rem; }
 .classic-judgment { font: 1.1rem/1.8 var(--font-display); color: var(--color-gold-bright); }
 .classic-card li { margin-block: .55rem; line-height: 1.75; }
 .special-line { color: var(--color-cinnabar); }
 .settings-form article { display: grid; gap: .8rem; }
-.settings-form h2, .danger-zone h2 { margin: 0; color: var(--color-gold-bright); }
+.settings-form h2, .policy-card h2, .danger-zone h2 { margin: 0; color: var(--color-gold-bright); }
 .settings-form label { display: grid; gap: .45rem; }
 .settings-actions { display: grid; gap: .65rem; }
+.policy-card { display: grid; gap: .75rem; }
+.policy-card p, .policy-card ul { margin: 0; }
+.policy-card ul { padding-left: 1.2rem; color: var(--color-muted); }
+.policy-card li { margin-block: .5rem; line-height: 1.7; }
+.policy-card--boundary { border-color: rgb(169 69 55 / 45%); }
+.settings-policy { margin-top: .2rem; }
+.app-version { color: var(--color-muted); font-size: .78rem; letter-spacing: .04em; }
 .danger-zone { border-color: rgb(169 69 55 / 45%); }
 .danger-zone button, .clear-dialog [data-confirm-clear] { min-height: 2.75rem; border: 1px solid var(--color-cinnabar); border-radius: var(--radius-sm); color: #ffd4ca; background: rgb(169 69 55 / 25%); }
 .clear-dialog { max-width: 28rem; color: var(--color-text); border: 1px solid var(--color-cinnabar); border-radius: var(--radius-md); background: var(--color-ink); }

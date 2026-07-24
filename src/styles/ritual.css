@@ -3,7 +3,12 @@
 .ritual-view h1 { margin: 0; font: 600 clamp(2.2rem, 10vw, 4rem) var(--font-display); color: var(--color-gold-bright); }
 .ritual-view > span { color: var(--color-muted); font-size: .72rem; }
 .ritual-hexagram { display: flex; flex-direction: column-reverse; gap: .78rem; width: min(72vw, 16rem); margin: 1.2rem 0; padding: 1.5rem; border: 1px solid rgb(185 155 82 / 22%); border-radius: 50% 50% var(--radius-md) var(--radius-md); background: radial-gradient(circle at 50% 40%, rgb(37 74 66 / 45%), transparent 68%); box-shadow: 0 0 4rem rgb(37 74 66 / 30%); }
-.ritual-line { display: grid; grid-template-columns: 1fr 1fr auto; gap: .8rem; align-items: center; opacity: 0; transform: translateY(1rem) scaleX(.82); animation: reveal-line .48s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--reveal-index) * 110ms); }
+.ritual-line { display: grid; grid-template-columns: 1fr 1fr auto; gap: .8rem; align-items: center; opacity: 0; transform: translateY(1rem) scaleX(.82); animation: reveal-line .48s cubic-bezier(.2,.8,.2,1) forwards; }
+.ritual-line[data-reveal-index="1"] { animation-delay: 110ms; }
+.ritual-line[data-reveal-index="2"] { animation-delay: 220ms; }
+.ritual-line[data-reveal-index="3"] { animation-delay: 330ms; }
+.ritual-line[data-reveal-index="4"] { animation-delay: 440ms; }
+.ritual-line[data-reveal-index="5"] { animation-delay: 550ms; }
 .ritual-line i { height: .7rem; border-radius: 999px; background: linear-gradient(90deg, var(--color-gold), var(--color-gold-bright)); box-shadow: 0 0 1rem rgb(185 155 82 / 18%); }
 .ritual-line.yang i:first-child { grid-column: 1 / 3; }
 .ritual-line.yang i:nth-child(2) { display: none; }

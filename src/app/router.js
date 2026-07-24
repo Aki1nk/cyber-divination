@@ -3,6 +3,7 @@ const STATIC_ROUTES = Object.freeze({
   '#/ask': 'ask',
   '#/history': 'history',
   '#/classics': 'classics',
+  '#/privacy': 'privacy',
   '#/settings': 'settings'
 });
 

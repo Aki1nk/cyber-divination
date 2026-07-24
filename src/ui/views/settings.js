@@ -1,4 +1,5 @@
 import { escapeHtml } from '../dom.js';
+import { APP_BUILD, APP_VERSION } from '../../app/version.js';
 
 export const DEFAULT_SETTINGS = Object.freeze({
   reduceMotion: false,
@@ -42,6 +43,7 @@ export function renderSettings(settingsInput = {}, recordCount = 0) {
       <article><h2>显示与动效</h2><label class="switch-row"><input type="checkbox" name="reduceMotion" ${settings.reduceMotion ? 'checked' : ''}><span>减少动态效果</span></label></article>
       <div class="settings-actions"><button class="primary-action primary-action--button" type="submit"><span>保存设置</span></button><button class="secondary-action" type="button" data-reset-settings>恢复默认</button><p role="status" data-settings-status></p></div>
     </form>
+    <article class="policy-card settings-policy"><h2>隐私与应用信息</h2><p>占问、设置与卦录仅存于本机；应用不含账号、后端、云同步或分析 SDK。</p><a class="text-link" href="#/privacy">查看隐私与安全边界</a><p class="app-version">版本 ${APP_VERSION} · 构建 ${APP_BUILD}</p></article>
     <article class="danger-zone"><h2>本机数据</h2><p>当前共有 ${recordCount} 条卦录。首版不提供导出或云同步。</p><button type="button" data-open-clear>清除全部卦录</button></article>
     <dialog class="clear-dialog" data-clear-dialog><form method="dialog"><h2>确认清除 ${recordCount} 条卦录？</h2><p>此操作不可撤销，设置将会保留。</p><div><button value="cancel">取消</button><button value="confirm" data-confirm-clear>确认清除</button></div></form></dialog>
   </section>`;
