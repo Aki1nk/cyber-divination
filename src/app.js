@@ -8,22 +8,37 @@ import { renderHome } from './ui/views/home.js';
 import { renderAsk } from './ui/views/ask.js';
 import { renderRitual } from './ui/views/ritual.js';
 import { renderResult } from './ui/views/result.js';
+import { renderHistory } from './ui/views/history.js';
+import { filterClassics, renderClassics, renderClassicsList } from './ui/views/classics.js';
+import { DEFAULT_SETTINGS, normalizeSettings, renderSettings } from './ui/views/settings.js';
 
 const app = document.querySelector('#app');
 const repository = createRepository(window.localStorage);
 let controllerPromise;
+let classicsDataPromise;
+let currentClassics = [];
 
-async function getController() {
-  if (!controllerPromise) {
-    controllerPromise = fetch('/src/vendor/64gua.json')
+async function getClassicsData() {
+  if (!classicsDataPromise) {
+    classicsDataPromise = fetch('/src/vendor/64gua.json')
       .then((response) => {
         if (!response.ok) throw new Error('经典数据加载失败');
         return response.json();
       })
-      .then((records) => createCastController({
+      .then((records) => {
+        const index = createClassicsIndex(records);
+        return { index, classics: [...index.values()] };
+      });
+  }
+  return classicsDataPromise;
+}
+
+async function getController() {
+  if (!controllerPromise) {
+    controllerPromise = getClassicsData().then(({ index }) => createCastController({
         repository,
         calendar: createCalendarAdapter({ Solar: globalThis.Solar }),
-        classicsIndex: createClassicsIndex(records)
+        classicsIndex: index
       }));
   }
   return controllerPromise;
@@ -40,9 +55,13 @@ async function routeContent(route) {
     const record = await repository.getRecord(route.params.id);
     return record ? renderResult(record) : renderPlaceholder('未找到卦录', '该记录可能已被清除，或不属于当前设备。');
   }
-  if (route.name === 'history') return renderPlaceholder('卦录', '仅在此设备保存的占问记录。');
-  if (route.name === 'classics') return renderPlaceholder('易经', '六十四卦经典原文索引。');
-  return renderPlaceholder('设置', '调整算法口径、动效与隐私选项。');
+  if (route.name === 'history') return renderHistory(await repository.listRecords());
+  if (route.name === 'classics') {
+    currentClassics = (await getClassicsData()).classics;
+    return renderClassics(currentClassics);
+  }
+  const [settings, records] = await Promise.all([repository.getSettings(), repository.listRecords()]);
+  return renderSettings(settings, records.length);
 }
 
 function bindResultTabs() {
@@ -68,6 +87,54 @@ function bindResultTabs() {
       const offset = event.key === 'ArrowRight' ? 1 : -1;
       selectTab((index + offset + tabs.length) % tabs.length, true);
     });
+  });
+}
+
+function bindClassicsView() {
+  const input = app.querySelector('[data-classics-search]');
+  const list = app.querySelector('[data-classics-list]');
+  if (!input || !list) return;
+  input.addEventListener('input', () => {
+    list.innerHTML = renderClassicsList(filterClassics(currentClassics, input.value));
+  });
+}
+
+function bindSettingsView() {
+  const form = app.querySelector('[data-settings-form]');
+  const dialog = app.querySelector('[data-clear-dialog]');
+  if (!form || !dialog) return;
+  const status = form.querySelector('[data-settings-status]');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    try {
+      const data = new FormData(form);
+      const settings = normalizeSettings({
+        reduceMotion: data.get('reduceMotion') === 'on',
+        dayBoundary: data.get('dayBoundary'),
+        yearBoundary: data.get('yearBoundary'),
+        timeMode: data.get('timeMode'),
+        algorithmProfile: data.get('algorithmProfile')
+      });
+      await repository.saveSettings(settings);
+      document.documentElement.dataset.reduceMotion = String(settings.reduceMotion);
+      status.textContent = '设置已保存于本机。';
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  });
+
+  app.querySelector('[data-reset-settings]')?.addEventListener('click', async () => {
+    await repository.saveSettings(DEFAULT_SETTINGS);
+    document.documentElement.dataset.reduceMotion = 'false';
+    await renderApp();
+  });
+  app.querySelector('[data-open-clear]')?.addEventListener('click', () => dialog.showModal());
+  app.querySelector('[data-confirm-clear]')?.addEventListener('click', async (event) => {
+    event.preventDefault();
+    await repository.clearRecords();
+    dialog.close();
+    await renderApp();
   });
 }
 
@@ -160,6 +227,8 @@ async function renderApp() {
   app.dataset.ready = 'true';
   if (route.name === 'ask') bindAskView();
   if (route.name === 'result') bindResultTabs();
+  if (route.name === 'classics') bindClassicsView();
+  if (route.name === 'settings') bindSettingsView();
 }
 
 window.addEventListener('hashchange', renderApp);

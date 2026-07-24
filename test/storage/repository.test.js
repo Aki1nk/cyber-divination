@@ -37,3 +37,12 @@ test('question fingerprints normalize spaces and full-width punctuation', async 
     await fingerprintQuestion('  工作,   是否顺利?  ')
   );
 });
+
+test('repository clears records without discarding settings', async () => {
+  const repository = createRepository(createMemoryStorage());
+  await repository.saveRecord({ id: 'gua-1', createdAt: '2026-07-24T10:00:00.000Z' });
+  await repository.saveSettings({ reduceMotion: true });
+  await repository.clearRecords();
+  assert.deepEqual(await repository.listRecords(), []);
+  assert.equal((await repository.getSettings()).reduceMotion, true);
+});

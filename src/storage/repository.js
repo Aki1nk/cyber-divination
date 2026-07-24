@@ -97,6 +97,10 @@ export function createRepository(storage, { now = () => new Date() } = {}) {
     async getSettings() {
       return clone(load().settings);
     },
+    async clearRecords() {
+      load().records = [];
+      persist();
+    },
     async findRecentDuplicate(questionFingerprint, currentTime = now()) {
       const currentMs = currentTime.getTime();
       const match = load().records
