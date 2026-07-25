@@ -13,7 +13,8 @@ test('privacy page explains local and 30-day cloud data boundaries', async () =>
   assert.match(html, /本地卦录保存在当前设备/);
   assert.match(html, /所有新占问会上传/);
   assert.match(html, /云端记录保留 30 天/);
-  assert.match(html, /OpenAI/);
+  assert.match(html, /第三方 AI 中转服务/);
+  assert.match(html, /中转服务及其上游供应商/);
   assert.match(html, /定位权限/);
   assert.match(html, /不替代医疗、法律或投资专业意见/);
   assert.match(html, /不预测死亡时间/);

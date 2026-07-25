@@ -24,6 +24,28 @@ test('OpenAI request uses approved model and structured output settings', async 
   assert.equal(result.reading.action_steps.length, 1);
 });
 
+test('Responses-compatible relay URL and configured model are used', async () => {
+  let request;
+  const fetchImpl = async (url, options) => {
+    request = { url, body: JSON.parse(options.body) };
+    return new Response(JSON.stringify({ id: 'resp_relay', model: 'gpt-5.4-mini', output: [{ type: 'message', content: [{ type: 'output_text', text: JSON.stringify(reading) }] }] }), { status: 200 });
+  };
+  await requestAiReading({ apiKey: 'relay-key', baseUrl: 'https://tokunex.com/v1/', model: 'gpt-5.4-mini', payload: { question: { text: 'x', background: '' }, casting: {}, localReading: {} }, risk: { level: 'normal', categories: [] }, fetchImpl });
+  assert.equal(request.url, 'https://tokunex.com/v1/responses');
+  assert.equal(request.body.model, 'gpt-5.4-mini');
+});
+
+test('complete Responses URL is not duplicated and insecure providers are rejected', async () => {
+  let requestUrl;
+  const fetchImpl = async (url) => {
+    requestUrl = url;
+    return new Response(JSON.stringify({ id: 'resp_complete', output: [{ type: 'message', content: [{ type: 'refusal', refusal: 'cannot comply' }] }] }), { status: 200 });
+  };
+  await requestAiReading({ apiKey: 'relay-key', baseUrl: 'https://tokunex.com/v1/responses', payload: { question: { text: 'x', background: '' }, casting: {}, localReading: {} }, risk: { level: 'normal', categories: [] }, fetchImpl });
+  assert.equal(requestUrl, 'https://tokunex.com/v1/responses');
+  await assert.rejects(() => requestAiReading({ apiKey: 'relay-key', baseUrl: 'http://tokunex.com/v1', payload: { question: { text: 'x', background: '' }, casting: {}, localReading: {} }, risk: { level: 'normal', categories: [] }, fetchImpl }), (error) => error instanceof OpenAIRequestError && error.code === 'provider_not_configured');
+});
+
 test('OpenAI refusal is returned without parsing invented output', async () => {
   const fetchImpl = async () => new Response(JSON.stringify({ id: 'resp_2', status: 'completed', output: [{ type: 'message', content: [{ type: 'refusal', refusal: 'cannot comply' }] }] }), { status: 200 });
   const result = await requestAiReading({ apiKey: 'key', payload: { question: { text: 'x', background: '' }, casting: {}, localReading: {} }, risk: { level: 'normal', categories: [] }, fetchImpl });
