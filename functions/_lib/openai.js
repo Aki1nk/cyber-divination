@@ -2,6 +2,8 @@ import { AI_READING_JSON_SCHEMA } from './ai-schema.js';
 import { buildOpenAIInput } from './prompt.js';
 
 const REQUIRED_FIELDS = AI_READING_JSON_SCHEMA.required;
+const DEFAULT_BASE_URL = 'https://api.openai.com/v1';
+const DEFAULT_MODEL = 'gpt-5.4-mini';
 
 export class OpenAIRequestError extends Error {
   constructor(code) {
@@ -16,6 +18,18 @@ function providerCode(status) {
   if (status === 429) return 'provider_rate_limited';
   if (status >= 500) return 'provider_unavailable';
   return 'provider_rejected_request';
+}
+
+function responsesUrl(value) {
+  const raw = String(value || DEFAULT_BASE_URL).trim();
+  let url;
+  try { url = new URL(raw); } catch { throw new OpenAIRequestError('provider_not_configured'); }
+  if (url.protocol !== 'https:') throw new OpenAIRequestError('provider_not_configured');
+  url.hash = '';
+  url.search = '';
+  const pathname = url.pathname.replace(/\/+$/, '');
+  url.pathname = pathname.endsWith('/responses') ? pathname : `${pathname}/responses`;
+  return url.toString();
 }
 
 function parseOutput(response) {
@@ -33,19 +47,21 @@ function parseOutput(response) {
   throw new OpenAIRequestError('provider_invalid_output');
 }
 
-export async function requestAiReading({ apiKey, payload, risk, fetchImpl = fetch, timeoutMs = 45_000 }) {
+export async function requestAiReading({ apiKey, baseUrl, model, payload, risk, fetchImpl = fetch, timeoutMs = 45_000 }) {
   if (!apiKey) throw new OpenAIRequestError('provider_not_configured');
+  const requestUrl = responsesUrl(baseUrl);
+  const requestModel = String(model || DEFAULT_MODEL).trim() || DEFAULT_MODEL;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     let response;
     try {
-      response = await fetchImpl('https://api.openai.com/v1/responses', {
+      response = await fetchImpl(requestUrl, {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          model: 'gpt-5.4-mini',
+          model: requestModel,
           reasoning: { effort: 'medium' },
           store: false,
           tools: [],
