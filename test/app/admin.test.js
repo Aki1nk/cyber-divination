@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { renderAdminLogin, renderAdminDashboard, renderAdminDetail } from '../../src/ui/views/admin.js';
+import { renderAdminLogin, renderAdminDashboard, renderAdminDetail, renderAdminUsers, renderAdminInvites } from '../../src/ui/views/admin.js';
 
 test('admin login never embeds a password value', () => {
   const html = renderAdminLogin({ error: '密码错误' });
@@ -15,6 +15,15 @@ test('admin dashboard renders filters, pagination and escaped questions', () => 
   assert.match(html, /下一页/);
   assert.match(html, /&lt;script&gt;/);
   assert.doesNotMatch(html, /<script>alert/);
+});
+
+test('admin renders user notes and invitation creation controls', () => {
+  const users = renderAdminUsers({ items: [{ id: 'u1', phone: '13800138000', nickname: '林', status: 'active', admin_note: '<内部>' }], total: 1, page: 1, pageSize: 25 });
+  assert.match(users, /data-user-edit="u1"/);
+  assert.match(users, /&lt;内部&gt;/);
+  const invites = renderAdminInvites([{ id: 'i1', code: '天机AB12', status: 'active', expires_at: null }]);
+  assert.match(invites, /data-invite-create/);
+  assert.match(invites, /data-invite-revoke="i1"/);
 });
 
 test('admin detail exposes complete payload and deletion confirmation control', () => {

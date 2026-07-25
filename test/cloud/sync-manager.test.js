@@ -44,6 +44,16 @@ test('sync manager switches to retry endpoint after server creates a failed read
   assert.equal((await repository.getRecord('gua-1')).ai.status, 'completed');
 });
 
+test('account-aware sync does not upload legacy or another user queue automatically', async () => {
+  const repository = createRepository(createMemoryStorage());
+  await repository.saveRecord(record);
+  let calls = 0;
+  const manager = createSyncManager({ repository, deviceId: '11111111-2222-4333-8444-555555555555', getAccountId: () => 'user-1', client: { create: async () => { calls += 1; return { id: 'cloud-1', status: 'completed' }; } } });
+  await repository.enqueueUpload({ id: 'upload:legacy', readingId: record.id, payload: {}, accountId: null, attempts: 0, createdAt: '2026-07-25T00:00:00Z', nextAttemptAt: '2026-07-25T00:00:00Z' });
+  await manager.flush();
+  assert.equal(calls, 0);
+});
+
 test('sync manager force-retries completed legacy AI readings', async () => {
   const repository = createRepository(createMemoryStorage());
   const legacy = { ...record, ai: { status: 'completed', readingId: 'cloud-legacy', reading: { overall_judgment: '旧版结果' } } };

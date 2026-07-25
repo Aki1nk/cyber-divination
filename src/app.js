@@ -1,10 +1,11 @@
-import { parseRoute } from './app/router.js';
+import { parseRoute, routeForSession } from './app/router.js';
 import { createCastController } from './app/cast-controller.js';
 import { createCalendarAdapter } from './domain/calendar.js';
 import { createClassicsIndex } from './data/classics.js';
 import { createRepository } from './storage/repository.js';
 import { getOrCreateDeviceId } from './cloud/device-id.js';
 import { createReadingsClient } from './cloud/readings-client.js';
+import { createAuthClient } from './cloud/auth-client.js';
 import { createSyncManager } from './cloud/sync-manager.js';
 import { renderLayout } from './ui/layout.js';
 import { renderHome } from './ui/views/home.js';
@@ -15,13 +16,18 @@ import { renderHistory } from './ui/views/history.js';
 import { filterClassics, renderClassics, renderClassicsList } from './ui/views/classics.js';
 import { renderPrivacy } from './ui/views/privacy.js';
 import { DEFAULT_SETTINGS, normalizeSettings, renderSettings } from './ui/views/settings.js';
+import { renderAuth } from './ui/views/auth.js';
+import { renderAccount } from './ui/views/account.js';
 
 const app = document.querySelector('#app');
 const repository = createRepository(window.localStorage);
 const deviceId = getOrCreateDeviceId(window.localStorage);
+const authClient = createAuthClient();
+let currentUser;
 const syncManager = createSyncManager({
   repository,
   deviceId,
+  getAccountId: () => currentUser?.id ?? null,
   client: createReadingsClient(),
   onRecordUpdated(recordId) {
     if (window.location.hash === `#/result/${encodeURIComponent(recordId)}`) renderApp();
@@ -66,6 +72,8 @@ function renderPlaceholder(title, message) {
 }
 
 async function routeContent(route) {
+  if (route.name === 'login') return renderAuth();
+  if (route.name === 'account') return renderAccount(currentUser);
   if (route.name === 'home') return renderHome();
   if (route.name === 'ask') return renderAsk();
   if (route.name === 'result') {
@@ -80,6 +88,67 @@ async function routeContent(route) {
   if (route.name === 'privacy') return renderPrivacy();
   const [settings, records] = await Promise.all([repository.getSettings(), repository.listRecords()]);
   return renderSettings(settings, records.length);
+}
+
+function authError(error) {
+  if (error.code === 'invalid_credentials') return '手机号或密码错误。';
+  if (error.code === 'too_many_attempts') return '尝试次数过多，请 15 分钟后再试。';
+  if (error.code === 'invalid_invite') return '邀请码无效、已使用或已过期。';
+  if (error.code === 'phone_in_use') return '该手机号已注册，请直接登录。';
+  return error.message || '操作未完成，请稍后重试。';
+}
+
+function bindAuthView() {
+  app.querySelectorAll('[data-auth-mode]').forEach((button) => button.addEventListener('click', () => {
+    app.innerHTML = renderLayout({ routeName: 'login', content: renderAuth({ mode: button.dataset.authMode }), authenticated: false });
+    bindAuthView();
+  }));
+  app.querySelector('[data-auth-form]')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const data = Object.fromEntries(new FormData(form));
+    form.querySelector('button[type="submit"]').disabled = true;
+    try {
+      const result = form.dataset.authForm === 'register' ? await authClient.register(data) : await authClient.login(data);
+      currentUser = result.user;
+      window.location.hash = currentUser.mustChangePassword ? '#/account' : '#/';
+      await renderApp();
+      if (!currentUser.mustChangePassword) syncManager.flush().catch(() => {});
+    } catch (error) {
+      app.innerHTML = renderLayout({ routeName: 'login', content: renderAuth({ mode: form.dataset.authForm, error: authError(error) }), authenticated: false });
+      bindAuthView();
+    }
+  });
+}
+
+function bindAccountView() {
+  app.querySelector('[data-change-password]')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(event.currentTarget));
+    try {
+      await authClient.changePassword(data);
+      currentUser = { ...currentUser, mustChangePassword: false };
+      app.innerHTML = renderLayout({ routeName: 'account', content: renderAccount(currentUser, { success: '密码已更新。' }) });
+      bindAccountView();
+    } catch (error) {
+      app.innerHTML = renderLayout({ routeName: 'account', content: renderAccount(currentUser, { error: authError(error) }) });
+      bindAccountView();
+    }
+  });
+  app.querySelector('[data-user-logout]')?.addEventListener('click', async () => {
+    await authClient.logout(); currentUser = null; window.location.hash = '#/login'; await renderApp();
+  });
+  app.querySelector('[data-delete-account]')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!window.confirm('确认永久注销账户？')) return;
+    try {
+      await authClient.deleteAccount(Object.fromEntries(new FormData(event.currentTarget)));
+      currentUser = null; window.location.hash = '#/login'; await renderApp();
+    } catch (error) {
+      app.innerHTML = renderLayout({ routeName: 'account', content: renderAccount(currentUser, { error: authError(error) }) });
+      bindAccountView();
+    }
+  });
 }
 
 function bindResultTabs() {
@@ -254,9 +323,17 @@ function bindAskView() {
 
 async function renderApp() {
   if (!app) return;
-  const route = parseRoute(window.location.hash);
-  app.innerHTML = renderLayout({ routeName: route.name, content: await routeContent(route) });
+  if (currentUser === undefined) currentUser = await authClient.session().catch(() => null);
+  const requested = parseRoute(window.location.hash);
+  const route = routeForSession(requested, currentUser);
+  if (route.name !== requested.name) {
+    window.location.hash = route.name === 'home' ? '#/' : `#/${route.name}`;
+    return;
+  }
+  app.innerHTML = renderLayout({ routeName: route.name, content: await routeContent(route), authenticated: Boolean(currentUser) });
   app.dataset.ready = 'true';
+  if (route.name === 'login') bindAuthView();
+  if (route.name === 'account') bindAccountView();
   if (route.name === 'ask') bindAskView();
   if (route.name === 'result') bindResultTabs();
   if (route.name === 'classics') bindClassicsView();
@@ -264,10 +341,9 @@ async function renderApp() {
 }
 
 window.addEventListener('hashchange', renderApp);
-renderApp();
-syncManager.flush().catch(() => {});
-window.addEventListener('online', () => syncManager.flush().catch(() => {}));
-window.setInterval(() => syncManager.flush().catch(() => {}), 60_000);
+renderApp().then(() => { if (currentUser && !currentUser.mustChangePassword) syncManager.flush().catch(() => {}); });
+window.addEventListener('online', () => { if (currentUser && !currentUser.mustChangePassword) syncManager.flush().catch(() => {}); });
+window.setInterval(() => { if (currentUser && !currentUser.mustChangePassword) syncManager.flush().catch(() => {}); }, 60_000);
 
 const canRegisterServiceWorker = 'serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname));
 if (canRegisterServiceWorker) {

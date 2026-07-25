@@ -10,10 +10,11 @@ function fakeDb(results = []) {
 test('repository creates a 30-day expiring reading', async () => {
   const db = fakeDb();
   const repository = createReadingsRepository(db, { now: () => new Date('2026-07-25T00:00:00.000Z'), idFactory: () => 'reading-1' });
-  const row = await repository.create({ idempotencyKey: 'gua-1', deviceId: 'device-1', question: { text: '项目是否排期？', background: '', category: 'career' } }, { level: 'normal', categories: [] });
+  const row = await repository.create({ idempotencyKey: 'gua-1', deviceId: 'device-1', question: { text: '项目是否排期？', background: '', category: 'career' } }, { level: 'normal', categories: [] }, 'user-1');
   assert.equal(row.id, 'reading-1');
   assert.equal(row.expiresAt, '2026-08-24T00:00:00.000Z');
   assert.match(db.calls[0].sql, /INSERT INTO readings/);
+  assert.equal(db.calls[0].values[1], 'user-1');
   assert.match(db.calls[0].values.at(-1), /question/);
 });
 

@@ -7,11 +7,12 @@ export function nextRetryAt(now, attempts) {
   return new Date(now.getTime() + delay).toISOString();
 }
 
-export function createUploadTask({ readingId, payload, createdAt = new Date().toISOString() }) {
+export function createUploadTask({ readingId, payload, accountId = null, createdAt = new Date().toISOString() }) {
   if (!readingId) throw new TypeError('上传任务缺少卦录编号');
   return Object.freeze({
     id: `upload:${readingId}`,
     readingId,
+    accountId,
     payload,
     attempts: 0,
     createdAt,
