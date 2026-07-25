@@ -15,6 +15,8 @@ test('buildProject copies the application shell', async () => {
     assert.match(await readFile(join(outputDir, 'manifest.webmanifest'), 'utf8'), /standalone/);
     assert.ok(rootFiles.includes('_headers'), '构建产物应包含 Cloudflare Pages 安全响应头');
     assert.ok(rootFiles.includes('robots.txt'), '构建产物应包含 robots.txt');
+    assert.ok(rootFiles.includes('admin.html'), '构建产物应包含管理后台入口');
+    assert.match(await readFile(join(outputDir, 'admin.html'), 'utf8'), /noindex,nofollow/);
 
     const headers = await readFile(join(outputDir, '_headers'), 'utf8');
     assert.match(headers, /Content-Security-Policy:/);
@@ -22,6 +24,9 @@ test('buildProject copies the application shell', async () => {
     assert.match(headers, /style-src 'self'/);
     assert.doesNotMatch(headers, /unsafe-inline/);
     assert.match(headers, /Permissions-Policy:.*geolocation=\(self\)/);
+    assert.match(headers, /\/admin\*/);
+    assert.match(headers, /\/api\/\*/);
+    assert.match(headers, /X-Robots-Tag: noindex/);
     assert.match(await readFile(join(outputDir, 'robots.txt'), 'utf8'), /User-agent:\s*\*/);
 
     const version = await readFile(join(outputDir, 'src/app/version.js'), 'utf8');

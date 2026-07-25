@@ -31,6 +31,18 @@ test('controller creates one immutable auditable number record', async () => {
   assert.ok(record.interpretation.sections.length === 9);
   assert.equal(record.snapshot.background, '需要协调团队资源并确认外部接口');
   assert.ok(Object.isFrozen(record.interpretation.questionContext));
+  assert.equal(record.ai.status, 'pending');
+});
+
+test('controller invokes post-save cloud hook only for a new record', async () => {
+  const repository = createRepository(createMemoryStorage());
+  const saved = [];
+  const controller = createCastController({ repository, now: () => new Date('2026-07-24T10:00:00.000Z'), onRecordSaved: (record) => saved.push(record.id) });
+  const input = { question: '项目是否进入排期？', category: 'career', method: 'number-pair', inputs: { first: '3', second: '5' } };
+  await controller.cast(input);
+  await controller.cast(input);
+  await Promise.resolve();
+  assert.equal(saved.length, 1);
 });
 
 test('controller returns a recent duplicate without creating another record', async () => {

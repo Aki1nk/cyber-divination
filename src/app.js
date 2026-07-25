@@ -3,6 +3,9 @@ import { createCastController } from './app/cast-controller.js';
 import { createCalendarAdapter } from './domain/calendar.js';
 import { createClassicsIndex } from './data/classics.js';
 import { createRepository } from './storage/repository.js';
+import { getOrCreateDeviceId } from './cloud/device-id.js';
+import { createReadingsClient } from './cloud/readings-client.js';
+import { createSyncManager } from './cloud/sync-manager.js';
 import { renderLayout } from './ui/layout.js';
 import { renderHome } from './ui/views/home.js';
 import { renderAsk } from './ui/views/ask.js';
@@ -15,6 +18,15 @@ import { DEFAULT_SETTINGS, normalizeSettings, renderSettings } from './ui/views/
 
 const app = document.querySelector('#app');
 const repository = createRepository(window.localStorage);
+const deviceId = getOrCreateDeviceId(window.localStorage);
+const syncManager = createSyncManager({
+  repository,
+  deviceId,
+  client: createReadingsClient(),
+  onRecordUpdated(recordId) {
+    if (window.location.hash === `#/result/${encodeURIComponent(recordId)}`) renderApp();
+  }
+});
 let controllerPromise;
 let classicsDataPromise;
 let currentClassics = [];
@@ -39,7 +51,11 @@ async function getController() {
     controllerPromise = getClassicsData().then(({ index }) => createCastController({
         repository,
         calendar: createCalendarAdapter({ Solar: globalThis.Solar }),
-        classicsIndex: index
+        classicsIndex: index,
+        onRecordSaved: async (record) => {
+          await syncManager.queue(record);
+          await syncManager.flush();
+        }
       }));
   }
   return controllerPromise;
@@ -89,6 +105,20 @@ function bindResultTabs() {
       const offset = event.key === 'ArrowRight' ? 1 : -1;
       selectTab((index + offset + tabs.length) % tabs.length, true);
     });
+  });
+
+  app.querySelector('[data-ai-retry]')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget;
+    const record = await repository.getRecord(button.dataset.aiRetry);
+    if (!record) return;
+    button.disabled = true;
+    button.textContent = '正在重试…';
+    try {
+      await syncManager.retryRecord(record);
+    } catch (error) {
+      await repository.patchRecord(record.id, { ai: { ...record.ai, status: 'failed', errorCode: error.message, updatedAt: new Date().toISOString() } });
+    }
+    await renderApp();
   });
 }
 
@@ -235,6 +265,9 @@ async function renderApp() {
 
 window.addEventListener('hashchange', renderApp);
 renderApp();
+syncManager.flush().catch(() => {});
+window.addEventListener('online', () => syncManager.flush().catch(() => {}));
+window.setInterval(() => syncManager.flush().catch(() => {}), 60_000);
 
 const canRegisterServiceWorker = 'serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname));
 if (canRegisterServiceWorker) {

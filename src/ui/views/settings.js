@@ -36,15 +36,15 @@ function selected(actual, value) {
 
 export function renderSettings(settingsInput = {}, recordCount = 0) {
   const settings = normalizeSettings(settingsInput);
-  return `<section class="secondary-view settings-view" aria-labelledby="settings-title"><header class="view-heading"><p>传统档案 · 本地隐私</p><h1 id="settings-title">设置</h1><span>所有选择仅保存在此设备</span></header>
+  return `<section class="secondary-view settings-view" aria-labelledby="settings-title"><header class="view-heading"><p>传统档案 · 数据边界</p><h1 id="settings-title">设置</h1><span>算法与显示选择保存在此设备</span></header>
     <form class="settings-form" data-settings-form>
       <article><h2>算法档案</h2><label>默认档案<select name="algorithmProfile"><option value="traditional-v1" selected>传统口径 v1</option></select></label><p>算法档案具名并版本化，既有卦录不会随设置变化。</p></article>
       <article><h2>时间口径</h2><label>默认时间模式<select name="timeMode"><option value="civil" ${selected(settings.timeMode, 'civil')}>民用时间</option><option value="true-solar" ${selected(settings.timeMode, 'true-solar')}>真太阳时</option></select></label><label>年界<select name="yearBoundary"><option value="lunar-new-year" ${selected(settings.yearBoundary, 'lunar-new-year')}>农历新年</option><option value="start-of-spring" ${selected(settings.yearBoundary, 'start-of-spring')}>立春</option></select></label><label>子时换日<select name="dayBoundary"><option value="midnight" ${selected(settings.dayBoundary, 'midnight')}>午夜换日</option><option value="early-zi" ${selected(settings.dayBoundary, 'early-zi')}>早子时换日</option></select></label></article>
       <article><h2>显示与动效</h2><label class="switch-row"><input type="checkbox" name="reduceMotion" ${settings.reduceMotion ? 'checked' : ''}><span>减少动态效果</span></label></article>
       <div class="settings-actions"><button class="primary-action primary-action--button" type="submit"><span>保存设置</span></button><button class="secondary-action" type="button" data-reset-settings>恢复默认</button><p role="status" data-settings-status></p></div>
     </form>
-    <article class="policy-card settings-policy"><h2>隐私与应用信息</h2><p>占问、设置与卦录仅存于本机；应用不含账号、后端、云同步或分析 SDK。</p><a class="text-link" href="#/privacy">查看隐私与安全边界</a><p class="app-version">版本 ${APP_VERSION} · 构建 ${APP_BUILD}</p></article>
-    <article class="danger-zone"><h2>本机数据</h2><p>当前共有 ${recordCount} 条卦录。首版不提供导出或云同步。</p><button type="button" data-open-clear>清除全部卦录</button></article>
+    <article class="policy-card settings-policy"><h2>隐私与应用信息</h2><p>本地保存卦录、设置和待上传队列；所有新占问会上传用于 AI 深解，云端记录保留 30 天。</p><a class="text-link" href="#/privacy">查看隐私与安全边界</a><p class="app-version">版本 ${APP_VERSION} · 构建 ${APP_BUILD}</p></article>
+    <article class="danger-zone"><h2>本机数据</h2><p>当前共有 ${recordCount} 条卦录。清除本机记录不会提前删除已经上传的云端记录。</p><button type="button" data-open-clear>清除全部卦录</button></article>
     <dialog class="clear-dialog" data-clear-dialog><form method="dialog"><h2>确认清除 ${recordCount} 条卦录？</h2><p>此操作不可撤销，设置将会保留。</p><div><button value="cancel">取消</button><button value="confirm" data-confirm-clear>确认清除</button></div></form></dialog>
   </section>`;
 }

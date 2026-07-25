@@ -4,7 +4,8 @@ import { relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const projectRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
-const inputs = ['index.html', 'manifest.webmanifest', '_headers', 'robots.txt', 'src', 'public', 'THIRD_PARTY_NOTICES.md'];
+const inputs = ['index.html', 'admin.html', 'manifest.webmanifest', '_headers', '_redirects', 'robots.txt', 'src', 'public', 'THIRD_PARTY_NOTICES.md'];
+const nonPrecacheUrls = new Set(['/admin.html', '/src/admin.js', '/src/ui/views/admin.js', '/src/styles/admin.css']);
 
 async function exists(path) {
   try { await stat(path); return true; } catch { return false; }
@@ -54,7 +55,7 @@ export async function buildProject({ outputDir = resolve(projectRoot, 'dist') } 
   files = (await collectFiles(outputDir)).sort((left, right) => left.localeCompare(right));
   const cacheVersion = `cyber-divination-${(await fingerprintFiles(outputDir, files)).slice(0, 12)}`;
   const precache = files
-    .filter((file) => toUrl(outputDir, file) !== '/_headers')
+    .filter((file) => !['/_headers', '/_redirects'].includes(toUrl(outputDir, file)) && !nonPrecacheUrls.has(toUrl(outputDir, file)))
     .map((file) => toUrl(outputDir, file));
   const template = await readFile(resolve(projectRoot, 'src/pwa/sw-template.js'), 'utf8');
   const worker = template

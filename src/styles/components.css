@@ -37,6 +37,8 @@
 .confirmation-card { display: grid; gap: .7rem; padding: 1rem; border: 1px solid rgb(185 155 82 / 35%); border-radius: var(--radius-md); background: linear-gradient(145deg, rgb(185 155 82 / 9%), rgb(11 28 24 / 88%)); }
 .confirmation-card > strong { color: var(--color-gold-bright); font-family: var(--font-display); }
 .confirmation-card > p { margin: 0; color: var(--color-muted); font-size: .76rem; }
+.confirmation-card .cloud-upload-disclosure { padding: .75rem; border: 1px solid rgb(169 69 55 / 48%); border-radius: var(--radius-sm); color: #e9c6bd; background: rgb(169 69 55 / 12%); line-height: 1.65; }
+.cloud-upload-disclosure strong { color: #ffb7a9; }
 .form-status { min-height: 1.25rem; color: #e7a89c !important; text-align: center; }
 .history-card, .classic-card, .interpretation-card, .hexagram-card, .settings-form article, .danger-zone { box-shadow: var(--shadow-panel); }
 .history-card:hover, .classic-card:hover { border-color: rgb(185 155 82 / 45%); transform: translateY(-1px); }

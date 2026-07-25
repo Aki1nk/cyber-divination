@@ -1,0 +1,20 @@
+.admin-shell { width: min(100% - 2rem, 78rem); margin: 0 auto; padding: 2rem 0 4rem; }
+.admin-login { width: min(100%, 28rem); margin: 10vh auto 0; padding: 1.4rem; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
+.admin-login h1, .admin-heading h1 { margin: .25rem 0; color: var(--color-gold-bright); font-family: var(--font-display); }
+.admin-login form, .admin-login label { display: grid; gap: .75rem; }
+.admin-login input, .admin-filters input, .admin-filters select { min-height: 2.8rem; padding: .65rem .75rem; border: 1px solid var(--color-line); border-radius: var(--radius-sm); color: var(--color-text); background: rgb(4 14 12 / 88%); }
+.admin-status { min-height: 1.5rem; color: #ffb7a9; }
+.admin-dashboard, .admin-detail { display: grid; gap: 1rem; }
+.admin-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: center; padding: 1rem; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); }
+.admin-heading p, .admin-heading span { margin: 0; color: var(--color-muted); }
+.admin-filters { display: grid; grid-template-columns: minmax(12rem, 1fr) repeat(2, minmax(8rem, .35fr)) auto; gap: .75rem; align-items: end; }
+.admin-filters label { display: grid; gap: .35rem; color: var(--color-muted); font-size: .8rem; }
+.admin-table-wrap { overflow-x: auto; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); }
+.admin-table-wrap table { width: 100%; border-collapse: collapse; }
+.admin-table-wrap th, .admin-table-wrap td { padding: .75rem; border-bottom: 1px solid var(--color-line); text-align: left; vertical-align: top; }
+.admin-table-wrap th { color: var(--color-gold-bright); }
+.admin-pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; }
+.admin-detail article { padding: 1rem; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); }
+.admin-detail pre { overflow: auto; max-height: 32rem; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--color-text); }
+.danger-action { min-height: 3rem; padding: .7rem 1rem; border: 1px solid #a94537; border-radius: var(--radius-sm); color: #ffd5cc; background: rgb(169 69 55 / 35%); }
+@media (max-width: 48rem) { .admin-filters { grid-template-columns: 1fr; } .admin-heading { align-items: flex-start; flex-direction: column; } }

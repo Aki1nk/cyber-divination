@@ -5,11 +5,13 @@ import { renderRiskBanner } from '../components/risk-banner.js';
 
 export function createResultModel(record) {
   return Object.freeze({
+    id: record.id,
     question: record.question,
     createdAt: record.createdAt,
     risk: record.risk ?? { level: 'normal', categories: [] },
     tabs: Object.freeze({
       summary: { sections: record.interpretation?.sections ?? [] },
+      ai: record.ai ?? { status: 'not_requested', readingId: null, reading: null, errorCode: null },
       hexagram: {
         original: record.classics?.original,
         mutual: record.classics?.mutual,
@@ -59,6 +61,39 @@ function renderSummary(model) {
   }).join('');
 }
 
+function renderAiList(title, items = []) {
+  return `<article class="ai-reading-card"><h2>${escapeHtml(title)}</h2><ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></article>`;
+}
+
+function renderAi(model) {
+  const ai = model.tabs.ai;
+  const boundary = model.risk.level === 'normal' ? '' : renderRiskBanner(model.risk);
+  if (ai.status === 'pending') return `${boundary}<article class="ai-status-card" role="status"><h2>AI 深解生成中</h2><p>本地解读已经完成，正在准备上传问题、背景与排盘事实。</p></article>`;
+  if (ai.status === 'queued') return `${boundary}<article class="ai-status-card" role="status"><h2>等待联网上传</h2><p>任务已保存在本机队列；联网后会自动上传并生成深解，本地解读仍然有效。</p></article>`;
+  if (ai.status === 'failed') return `${boundary}<article class="ai-status-card ai-status-card--error" role="status"><h2>AI 深解暂不可用</h2><p>云端服务本次没有完成解读，本地解读仍然有效，不需要重新起卦。</p><button type="button" class="secondary-action" data-ai-retry="${escapeHtml(model.id ?? '')}">重试 AI 深解</button><small>错误代码：${escapeHtml(ai.errorCode ?? 'unknown')}</small></article>`;
+  if (ai.status === 'refused') return `${boundary}<article class="ai-status-card ai-status-card--error" role="status"><h2>AI 未提供解读</h2><p>模型拒绝了本次请求。请以本地安全边界和现实专业建议为准，本地排盘与解读不会受影响。</p></article>`;
+  if (ai.status !== 'completed' || !ai.reading) return `${boundary}<article class="ai-status-card"><h2>此卦暂无 AI 深解</h2><p>这是旧版或尚未上传的本地记录，本地解读与排盘依据仍可正常查看。</p></article>`;
+
+  const reading = ai.reading;
+  const paragraphs = [
+    ['宜 / 不宜结论', reading.overall_judgment],
+    ['与所问之事的直接关系', reading.question_connection],
+    ['本卦、互卦、变卦综合', reading.hexagram_synthesis],
+    ['当前局势', reading.current_situation],
+    ['发展路径', reading.development_path],
+    ['后续倾向', reading.future_tendency]
+  ];
+  return `${boundary}<div class="ai-reading-stack">
+    ${paragraphs.map(([title, text]) => `<article class="ai-reading-card"><h2>${escapeHtml(title)}</h2><p>${escapeHtml(text ?? '')}</p></article>`).join('')}
+    ${renderAiList('有利条件', reading.favorable_factors)}
+    ${renderAiList('主要阻碍', reading.obstacles)}
+    ${renderAiList('具体行动步骤', reading.action_steps)}
+    ${renderAiList('明确不宜做', reading.avoid_actions)}
+    ${renderAiList('现实验证信号', reading.verification_signals)}
+    <article class="ai-reading-card ai-reading-card--limitations"><h2>适用边界</h2><p>${escapeHtml(reading.limitations ?? '')}</p></article>
+  </div>`;
+}
+
 function renderHexagrams(model) {
   const tab = model.tabs.hexagram;
   const cards = [
@@ -94,12 +129,13 @@ function renderEvidence(model) {
 
 export function renderResult(record) {
   const model = createResultModel(record);
-  const labels = [['summary', '摘要'], ['hexagram', '卦象'], ['classics', '经典'], ['evidence', '依据']];
+  const labels = [['summary', '本地解读'], ['ai', 'AI 深解'], ['hexagram', '卦象'], ['classics', '经典'], ['evidence', '依据']];
   return `<section class="result-view" aria-labelledby="result-title">
-    <header class="result-heading"><p>占问完成 · 仅存本机</p><h1 id="result-title">${escapeHtml(model.question)}</h1><time datetime="${escapeHtml(model.createdAt)}">${escapeHtml(new Date(model.createdAt).toLocaleString('zh-CN'))}</time></header>
+    <header class="result-heading"><p>本地排盘已完成 · AI 深解按状态显示</p><h1 id="result-title">${escapeHtml(model.question)}</h1><time datetime="${escapeHtml(model.createdAt)}">${escapeHtml(new Date(model.createdAt).toLocaleString('zh-CN'))}</time></header>
     ${renderRiskBanner(model.risk)}
     <div class="result-tabs" role="tablist" aria-label="推演结果层级">${labels.map(([id, label], index) => `<button role="tab" id="tab-${id}" aria-controls="panel-${id}" aria-selected="${index === 0}" tabindex="${index === 0 ? '0' : '-1'}" data-result-tab="${id}">${label}</button>`).join('')}</div>
     <section id="panel-summary" role="tabpanel" aria-labelledby="tab-summary" data-result-panel="summary">${renderSummary(model)}</section>
+    <section id="panel-ai" role="tabpanel" aria-labelledby="tab-ai" data-result-panel="ai" hidden>${renderAi(model)}</section>
     <section id="panel-hexagram" role="tabpanel" aria-labelledby="tab-hexagram" data-result-panel="hexagram" hidden>${renderHexagrams(model)}</section>
     <section id="panel-classics" role="tabpanel" aria-labelledby="tab-classics" data-result-panel="classics" hidden>${renderClassics(model)}</section>
     <section id="panel-evidence" role="tabpanel" aria-labelledby="tab-evidence" data-result-panel="evidence" hidden>${renderEvidence(model)}</section>

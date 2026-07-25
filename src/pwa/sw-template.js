@@ -17,6 +17,8 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+  const pathname = url.pathname;
+  if (pathname.startsWith('/api/') || pathname === '/admin' || pathname === '/admin.html' || pathname === '/src/admin.js' || pathname === '/src/ui/views/admin.js' || pathname === '/src/styles/admin.css') return;
 
   event.respondWith((async () => {
     const cached = await caches.match(request);

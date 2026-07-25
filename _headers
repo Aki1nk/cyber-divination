@@ -10,3 +10,11 @@
 
 /sw.js
   Cache-Control: no-cache, no-store, must-revalidate
+
+/admin*
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/api/*
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: noindex, nofollow, noarchive

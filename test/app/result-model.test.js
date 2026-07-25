@@ -27,11 +27,35 @@ test('result model separates summary, classics and calculation evidence', () => 
   assert.equal(model.tabs.evidence.rows[0].value, '28');
 });
 
-test('result markup exposes an accessible four-tab contract', () => {
+test('result markup exposes an accessible five-tab contract', () => {
   const html = renderResult(record);
-  assert.equal((html.match(/role="tab"/g) || []).length, 4);
+  assert.equal((html.match(/role="tab"/g) || []).length, 5);
   assert.match(html, /aria-selected="true"/);
   assert.match(html, /计算依据/);
+  assert.match(html, /AI 深解/);
+});
+
+test('completed AI reading renders every structured field and concrete actions', () => {
+  const html = renderResult({ ...record, ai: { status: 'completed', readingId: 'cloud-1', reading: {
+    overall_judgment: '宜先完成最小联调，不宜直接锁定正式排期。',
+    question_connection: '你问的是项目排期，关键事实是测试环境权限尚未开通。',
+    hexagram_synthesis: '体克用（你能推动局面），但动爻提示先处理阻塞。',
+    current_situation: '接口文档已有，测试入口未就绪。', development_path: '先开权限，再跑最小链路。', future_tendency: '验收通过后再进入正式排期。',
+    favorable_factors: ['接口文档已完成'], obstacles: ['测试环境权限未开通'],
+    action_steps: ['找测试环境管理员开通权限，由接口负责人跑通一次核心请求；以返回字段通过校验为完成标准。'],
+    avoid_actions: ['不要在最小联调前承诺上线日期。'], verification_signals: ['测试账号可以访问环境并返回预期字段。'],
+    limitations: '这是传统文化辅助分析，不替代项目负责人判断。'
+  } } });
+  assert.match(html, /体克用（你能推动局面）/);
+  assert.match(html, /找测试环境管理员/);
+  assert.match(html, /完成标准/);
+  assert.match(html, /不宜直接锁定正式排期/);
+});
+
+test('failed AI state keeps local result and exposes retry', () => {
+  const html = renderResult({ ...record, id: 'gua-1', ai: { status: 'failed', errorCode: 'provider_unavailable' } });
+  assert.match(html, /本地解读仍然有效/);
+  assert.match(html, /data-ai-retry="gua-1"/);
 });
 
 test('high-risk results display a professional boundary', () => {

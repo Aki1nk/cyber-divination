@@ -14,6 +14,10 @@ test('build emits a versioned precache service worker', async () => {
     assert.match(worker, /src\/vendor\/64gua\.json/);
     assert.doesNotMatch(worker, /"\/_headers"/);
     assert.match(worker, /mode === 'navigate'/);
+    assert.match(worker, /pathname\.startsWith\('\/api\/'\)/);
+    assert.match(worker, /pathname === '\/admin'/);
+    assert.doesNotMatch(worker, /"\/admin\.html"/);
+    assert.doesNotMatch(worker, /"\/src\/admin\.js"/);
     assert.doesNotMatch(worker, /__PRECACHE__|__CACHE_VERSION__/);
     assert.match(await readFile(join(outputDir, 'src/app.js'), 'utf8'), /serviceWorker\.register\('\/sw\.js'\)/);
   } finally {
