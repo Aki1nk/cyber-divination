@@ -1,16 +1,16 @@
 export const RELATION_TEXT = Object.freeze({
-  same_element: '体用同气，当前条件较为协调，宜维持节奏并核对细节。',
-  body_generates_use: '体生用，投入与消耗可能偏多，宜控制成本和承诺。',
-  use_generates_body: '用生体，外部条件较能提供助力，可优先承接明确资源。',
-  body_overcomes_use: '体克用，主动力较强，但仍需避免操之过急。',
-  use_overcomes_body: '用克体，外部阻力较明显，宜先降低风险与对抗。'
+  same_element: '体用比和（内外条件较容易配合）：保持现有节奏，先推进已经达成共识的事项，再核对细节。',
+  body_generates_use: '体生用（你正在投入较多精力支持外部事项）：设好时间、成本和承诺上限，避免一味消耗。',
+  use_generates_body: '用生体（外部条件能为你提供帮助）：主动承接明确资源，但仍要核实关键前提。',
+  body_overcomes_use: '体克用（你目前仍有主动权）：先把自己能决定的事做扎实，再处理外部变化。',
+  use_overcomes_body: '用克体（外部压力或条件更强）：放慢节奏，补齐信息，并为协商或调整预留空间。'
 });
 
 export const STRENGTH_TEXT = Object.freeze({
-  prosperous: '体势当令，执行能力相对充足。',
-  supported: '体势得助，可借助协作或既有基础推进。',
-  resting: '体势平缓，适合观察、整顿与小步验证。',
-  weakened: '体势偏弱，宜保存余量，避免一次承担过多。'
+  prosperous: '体势当令（当前可用资源和执行力相对充足）：可以推进关键步骤，但仍要核对事实与承受范围。',
+  supported: '体势得助（当前有人、资源或既有基础可以借力）：优先使用已经确认的支持条件。',
+  resting: '体势平缓（当前更适合观察和整理）：先小步验证，再根据现实反馈决定是否扩大行动。',
+  weakened: '体势偏弱（当前余量可能不足）：先保留时间、资金和精力，避免一次承担过多。'
 });
 
 export const RISK_BOUNDARIES = Object.freeze({
