@@ -1,8 +1,8 @@
 .result-view { display: grid; gap: 1rem; }
-.result-heading, .interpretation-card, .hexagram-card, .classic-stack article, .evidence-grid article, .relation-grid, .risk-banner { border: 1px solid rgb(185 155 82 / 24%); border-radius: var(--radius-md); background: rgb(11 28 24 / 78%); padding: 1rem; }
+.result-heading, .interpretation-card, .ai-reading-card, .ai-status-card, .hexagram-card, .classic-stack article, .evidence-grid article, .relation-grid, .risk-banner { border: 1px solid rgb(185 155 82 / 24%); border-radius: var(--radius-md); background: rgb(11 28 24 / 78%); padding: 1rem; }
 .result-heading h1 { margin: .4rem 0; font: 600 clamp(1.45rem, 5vw, 2.3rem) var(--font-display); }
 .result-heading p, .result-heading time, .classic-stack span, .hexagram-card > span { color: var(--color-muted); }
-.result-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: .35rem; position: sticky; top: 4.6rem; z-index: 4; padding: .35rem; border-radius: 999px; background: rgb(7 19 17 / 94%); }
+.result-tabs { display: grid; grid-template-columns: repeat(5, minmax(5rem, 1fr)); gap: .35rem; position: sticky; top: 4.6rem; z-index: 4; overflow-x: auto; padding: .35rem; border-radius: 999px; background: rgb(7 19 17 / 94%); }
 .result-tabs button { min-height: 2.75rem; border: 0; border-radius: 999px; color: var(--color-muted); background: transparent; }
 .result-tabs button[aria-selected="true"] { color: var(--color-ink); background: var(--color-gold-bright); }
 [data-result-panel] { display: grid; gap: 1rem; }
@@ -42,3 +42,13 @@
   font-size: 1.05rem;
   line-height: 1.85;
 }
+
+.ai-reading-stack { display: grid; gap: 1rem; }
+.ai-reading-card h2, .ai-status-card h2 { margin-top: 0; color: var(--color-gold-bright); }
+.ai-reading-card p, .ai-reading-card li, .ai-status-card p { line-height: 1.85; }
+.ai-reading-card ul { display: grid; gap: .65rem; padding-left: 1.25rem; }
+.ai-reading-card--limitations { border-style: dashed; color: var(--color-muted); }
+.ai-status-card { display: grid; gap: .75rem; justify-items: start; }
+.ai-status-card--error { border-color: rgb(169 69 55 / 58%); }
+.ai-status-card small { color: var(--color-muted); }
+@media (max-width: 36rem) { .result-tabs { border-radius: var(--radius-sm); } .result-tabs button { font-size: .75rem; } }

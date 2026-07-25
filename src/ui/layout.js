@@ -19,7 +19,7 @@ export function renderLayout({ routeName, content }) {
           <span class="brand__seal" aria-hidden="true">易</span>
           <span><strong>赛博天师</strong><small>梅花易数 · 易经推演</small></span>
         </a>
-        <span class="local-badge">本地推演</span>
+        <span class="local-badge">本地排盘 · AI 深解</span>
       </header>
       <main id="main-content" class="main-content" tabindex="-1">${content}</main>
       <nav class="bottom-nav" aria-label="主导航">${nav}</nav>

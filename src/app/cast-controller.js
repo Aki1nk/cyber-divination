@@ -86,7 +86,8 @@ export function createCastController({
   now = () => new Date(),
   randomIndex,
   calendar = null,
-  classicsIndex = null
+  classicsIndex = null,
+  onRecordSaved = null
 }) {
   if (!repository) throw new TypeError('缺少本地仓库');
 
@@ -195,10 +196,15 @@ export function createCastController({
         interpretation,
         risk,
         calculationLog,
+        ai: { status: 'pending', readingId: null, reading: null, errorCode: null, updatedAt: created.toISOString() },
         schemaVersion: 2
       });
 
       await repository.saveRecord(record);
+      try {
+        const pending = onRecordSaved?.(record);
+        pending?.catch?.(() => {});
+      } catch {}
       return record;
     }
   });
