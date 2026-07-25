@@ -113,13 +113,19 @@ export function createCastController({
       const movingLineText = original.lineTexts[hexagram.movingLine - 1];
       const risk = classifyRisk(question);
       const interpretation = interpret({
+        question,
+        background: String(input.background ?? '').trim(),
         category: input.category ?? 'general',
         relation,
         bodyStrength,
         useStrength,
+        originalId: original.id,
+        mutualId: mutual.id,
+        changedId: changed.id,
         originalName: original.name,
         mutualName: mutual.name,
         changedName: changed.name,
+        movingLine: hexagram.movingLine,
         movingLineText,
         risk
       });
@@ -189,7 +195,7 @@ export function createCastController({
         interpretation,
         risk,
         calculationLog,
-        schemaVersion: 1
+        schemaVersion: 2
       });
 
       await repository.saveRecord(record);

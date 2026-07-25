@@ -12,6 +12,7 @@ test('controller creates one immutable auditable number record', async () => {
   const controller = createCastController({ repository, now: () => new Date('2026-07-24T10:00:00.000Z') });
   const record = await controller.cast({
     question: '未来三个月是否适合推进当前职业选择？',
+    background: '需要协调团队资源并确认外部接口',
     category: 'career',
     method: 'number-pair',
     inputs: { first: '9', second: '16' }
@@ -23,6 +24,13 @@ test('controller creates one immutable auditable number record', async () => {
   assert.equal((await repository.listRecords()).length, 1);
   assert.ok(Object.isFrozen(record.snapshot));
   assert.ok(record.calculationLog.length >= 3);
+  assert.equal(record.schemaVersion, 2);
+  assert.equal(record.interpretation.profileId, 'local-deterministic-v2');
+  assert.equal(record.interpretation.questionContext.category, 'career');
+  assert.equal(record.interpretation.questionContext.intent, 'decision');
+  assert.ok(record.interpretation.sections.length === 9);
+  assert.equal(record.snapshot.background, '需要协调团队资源并确认外部接口');
+  assert.ok(Object.isFrozen(record.interpretation.questionContext));
 });
 
 test('controller returns a recent duplicate without creating another record', async () => {
