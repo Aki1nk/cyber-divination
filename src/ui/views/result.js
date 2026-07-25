@@ -34,20 +34,29 @@ export function createResultModel(record) {
         algorithm: record.algorithm ?? {},
         rawInputs: record.rawInputs ?? {},
         timeBasis: record.timeBasis,
-        schemaVersion: record.schemaVersion
+        schemaVersion: record.schemaVersion,
+        questionContext: record.interpretation?.questionContext ?? null,
+        interpretationProfile: record.interpretation?.profileId ?? 'local-deterministic-v1',
       }
     })
   });
 }
 
 function renderSummary(model) {
-  return model.tabs.summary.sections.map((section) => `
-    <article class="interpretation-card${section.id === 'action' ? ' interpretation-card--action' : ''}">
+  return model.tabs.summary.sections.map((section) => {
+    const classes = ['interpretation-card'];
+    if (section.id === 'verdict') classes.push('interpretation-card--verdict');
+    if (['action', 'action_order', 'avoid_and_verify'].includes(section.id)) classes.push('interpretation-card--action');
+    const inlineRisk = ['action', 'action_order'].includes(section.id) ? renderRiskBanner(model.risk) : '';
+
+    return `
+    <article class="${classes.join(' ')}">
       <h2>${escapeHtml(section.title ?? section.id)}</h2>
-      ${section.id === 'action' ? renderRiskBanner(model.risk) : ''}
+      ${inlineRisk}
       <p>${escapeHtml(section.text)}</p>
       ${renderReasonList(section.reasonKeys)}
-    </article>`).join('');
+    </article>`;
+  }).join('');
 }
 
 function renderHexagrams(model) {
@@ -76,7 +85,8 @@ function renderEvidence(model) {
   const tab = model.tabs.evidence;
   return `<div class="evidence-grid" aria-label="计算依据">
     <article><h2>计算日志</h2><dl>${tab.rows.map((row) => `<div><dt>${escapeHtml(row.label)}</dt><dd>${escapeHtml(row.value)}</dd></div>`).join('')}</dl></article>
-    <article><h2>算法档案</h2><dl><div><dt>算法 ID</dt><dd>${escapeHtml(tab.algorithm.id ?? '')}</dd></div><div><dt>算法版本</dt><dd>${escapeHtml(tab.algorithm.version ?? '')}</dd></div><div><dt>记录版本</dt><dd>${escapeHtml(tab.schemaVersion ?? '')}</dd></div></dl></article>
+    <article><h2>算法档案</h2><dl><div><dt>算法 ID</dt><dd>${escapeHtml(tab.algorithm.id ?? '')}</dd></div><div><dt>算法版本</dt><dd>${escapeHtml(tab.algorithm.version ?? '')}</dd></div><div><dt>记录版本</dt><dd>${escapeHtml(tab.schemaVersion ?? '')}</dd></div><div><dt>解读档案</dt><dd>${escapeHtml(tab.interpretationProfile)}</dd></div></dl></article>
+    ${tab.questionContext ? `<article><h2>问题解析</h2><pre>${escapeHtml(JSON.stringify(tab.questionContext, null, 2))}</pre></article>` : ''}
     <article><h2>原始输入</h2><pre>${escapeHtml(JSON.stringify(tab.rawInputs, null, 2))}</pre></article>
     ${tab.timeBasis ? `<article><h2>时间口径</h2><pre>${escapeHtml(JSON.stringify(tab.timeBasis, null, 2))}</pre></article>` : ''}
   </div>`;

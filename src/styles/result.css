@@ -27,3 +27,18 @@
 .risk-banner { border-color: rgb(169 69 55 / 70%); background: rgb(80 28 22 / 48%); }
 .risk-banner strong { color: #ffb7a9; }
 @media (min-width: 48rem) { .hexagram-grid { grid-template-columns: repeat(3, 1fr); } .evidence-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.interpretation-card--verdict {
+  border-color: rgb(225 195 116 / 62%);
+  background: linear-gradient(135deg, rgb(79 62 25 / 88%), rgb(15 39 32 / 92%));
+}
+
+.interpretation-card--verdict h2 {
+  color: var(--color-ivory);
+  font-size: clamp(1.4rem, 4vw, 2rem);
+}
+
+.interpretation-card--verdict p {
+  font-size: 1.05rem;
+  line-height: 1.85;
+}

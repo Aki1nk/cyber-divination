@@ -1,21 +1,27 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { RELATION_TEXT, RISK_BOUNDARIES, STRENGTH_TEXT } from '../../src/data/interpretation-rules.js';
+import { CATEGORY_GUIDANCE, FOCUS_ACTIONS, RELATION_TEXT, RISK_BOUNDARIES, STRENGTH_ADJUSTMENTS, STRENGTH_TEXT, VERDICT_RULES } from '../../src/data/interpretation-rules.js';
 import { classifyRisk } from '../../src/domain/risk.js';
 import { interpret } from '../../src/domain/interpretation.js';
 import { createClassicsIndex } from '../../src/data/classics.js';
 
 function interpretationInput(overrides = {}) {
   return {
+    question: '如何安排项目下一阶段的推进顺序？',
+    background: '需要协调团队资源并确认外部接口',
     category: 'career',
     relation: 'body_overcomes_use',
     bodyStrength: 'prosperous',
     useStrength: 'resting',
-    originalName: '家人',
-    mutualName: '未济',
-    changedName: '贲',
-    movingLineText: '九三：家人嗃嗃。',
+    originalId: '000111',
+    mutualId: '001011',
+    changedId: '100111',
+    originalName: '否',
+    mutualName: '渐',
+    changedName: '无妄',
+    movingLine: 1,
+    movingLineText: '初六：拔茅茹，以其汇，贞吉亨。',
     risk: { level: 'normal', categories: [] },
     ...overrides
   };
@@ -46,38 +52,87 @@ test('body strength retains terms and explains practical meaning', () => {
   });
 });
 
-test('interpretation exposes reasons and avoids forbidden certainty', () => {
-  const output = interpret(interpretationInput());
-  assert.deepEqual(output.sections.map((section) => section.id), ['summary', 'favorable', 'obstacles', 'timing', 'action']);
-  assert.ok(output.sections.every((section) => section.reasonKeys.length > 0));
-  assert.doesNotMatch(JSON.stringify(output), /必然|稳赚|包治|一定分手/);
-});
-
-test('interpretation explains obstacles, timing and action in everyday language', () => {
+test('v2 interpretation directly answers the question with nine auditable sections', () => {
   const output = interpret(interpretationInput());
   const sections = Object.fromEntries(output.sections.map((section) => [section.id, section]));
 
-  assert.match(sections.summary.text, /体克用（你目前仍有主动权）/);
-  assert.equal(sections.obstacles.text, '信息与执行仍有缺口（容易卡在前提不清或落实偏差）：先核对关键条件，再决定下一步。');
-  assert.equal(sections.timing.text, '动爻所示为“九三：家人嗃嗃。”。动爻（事情正在变化的位置）提示你留意当前阶段的转折；这是阶段提醒，不是具体日期或结果保证。');
-  assert.equal(sections.action.text, '行动宜从小处验证（先做一个能撤回、损失可控的步骤）：根据现实反馈再调整，不把卦象当作唯一决策依据。');
+  assert.equal(output.profileId, 'local-deterministic-v2');
+  assert.equal(output.questionContext.intent, 'action_planning');
+  assert.deepEqual(output.sections.map((section) => section.id), [
+    'verdict',
+    'direct_answer',
+    'current_situation',
+    'development_process',
+    'future_tendency',
+    'favorable',
+    'obstacles',
+    'action_order',
+    'avoid_and_verify'
+  ]);
+  assert.match(sections.verdict.text, /^宜主动推进/);
+  assert.match(sections.direct_answer.text, /如何安排项目下一阶段的推进顺序/);
+  assert.match(sections.current_situation.text, /项目|阻塞/);
+  assert.match(sections.development_process.text, /早期阶段|循序渐进/);
+  assert.match(sections.future_tendency.text, /无妄|事实/);
+  assert.match(sections.action_order.text, /第一步：.*第二步：.*第三步：/);
+  assert.match(sections.avoid_and_verify.text, /暂不宜：.*验证标准：/);
+  assert.ok(output.sections.every((section) => section.reasonKeys.length > 0));
 });
 
-test('strong use conditions receive a plain-language obstacle explanation', () => {
-  const output = interpret(interpretationInput({ useStrength: 'prosperous' }));
-  const obstacles = output.sections.find((section) => section.id === 'obstacles');
+test('all body-use relations produce the approved explicit verdict labels', () => {
+  const cases = {
+    body_overcomes_use: '宜主动推进',
+    use_generates_body: '宜借力推进',
+    same_element: '宜稳步推进',
+    body_generates_use: '宜控制投入后推进',
+    use_overcomes_body: '暂不宜强行推进'
+  };
 
-  assert.equal(obstacles.text, '用势较强（外部条件对事情的影响更大）：你的安排可能受到牵制，宜提前准备协商方案。');
+  for (const [relation, label] of Object.entries(cases)) {
+    const output = interpret(interpretationInput({ relation }));
+    assert.match(output.sections[0].text, new RegExp(`^${label}`));
+  }
 });
 
-test('high-risk advice still replaces the ordinary action suggestion', () => {
+test('moving line positions map to early middle and late stages without dates', () => {
+  const cases = [[1, 'early'], [2, 'early'], [3, 'middle'], [4, 'middle'], [5, 'late'], [6, 'late']];
+
+  for (const [movingLine, stage] of cases) {
+    const output = interpret(interpretationInput({ movingLine }));
+    const process = output.sections.find((section) => section.id === 'development_process');
+    assert.ok(process.reasonKeys.includes(`moving_stage:${stage}`));
+    assert.doesNotMatch(process.text, /\d{4}年|\d+月\d+日|保证在/);
+  }
+});
+
+test('high-risk advice replaces ordinary decision and action guidance', () => {
   const output = interpret(interpretationInput({
+    question: '这个药能不能治好我的病？',
     risk: { level: 'high', categories: ['medical'] }
   }));
-  const action = output.sections.find((section) => section.id === 'action');
+  const sections = Object.fromEntries(output.sections.map((section) => [section.id, section]));
 
-  assert.equal(action.text, RISK_BOUNDARIES.medical);
-  assert.deepEqual(action.reasonKeys, ['risk:high', 'risk_category:medical']);
+  assert.equal(sections.verdict.text, '此事不宜仅凭卦象决定。');
+  assert.equal(sections.direct_answer.text, RISK_BOUNDARIES.medical);
+  assert.equal(sections.action_order.text, RISK_BOUNDARIES.medical);
+  assert.doesNotMatch(JSON.stringify(output), /宜主动推进|宜借力推进/);
+});
+
+test('urgent self-harm interpretation stops divination framing and prioritizes help', () => {
+  const output = interpret(interpretationInput({
+    question: '我现在想自杀',
+    risk: { level: 'urgent', categories: ['self_harm'] }
+  }));
+
+  assert.equal(output.sections[0].text, '当前不宜继续进行宿命式判断。');
+  assert.ok(output.sections.every((section) => section.reasonKeys.includes('risk:urgent')));
+  assert.match(output.sections[1].text, /立即联系当地急救服务/);
+});
+
+test('v2 output avoids forbidden certainty and fabricated promises', () => {
+  const output = interpret(interpretationInput());
+  assert.doesNotMatch(JSON.stringify(output), /必然|注定|一定成功|一定失败|稳赚|包治|治愈|必有灾祸/);
+  assert.doesNotMatch(JSON.stringify(output.sections), /\u3002\uFF1B/);
 });
 
 test('classics index normalizes judgments, lines and special lines', async () => {
@@ -87,4 +142,27 @@ test('classics index normalizes judgments, lines and special lines', async () =>
   assert.equal(classics.get('111111').lineTexts.length, 6);
   assert.equal(classics.get('111111').specialLines.length, 1);
   assert.equal(classics.get('100010').name, '屯');
+});
+
+test('v2 verdict rules explicitly cover all five body-use relations', () => {
+  assert.deepEqual(Object.keys(VERDICT_RULES).sort(), [
+    'body_generates_use',
+    'body_overcomes_use',
+    'same_element',
+    'use_generates_body',
+    'use_overcomes_body'
+  ]);
+  assert.equal(VERDICT_RULES.body_overcomes_use.label, '宜主动推进');
+  assert.equal(VERDICT_RULES.use_generates_body.label, '宜借力推进');
+  assert.equal(VERDICT_RULES.same_element.label, '宜稳步推进');
+  assert.equal(VERDICT_RULES.body_generates_use.label, '宜控制投入后推进');
+  assert.equal(VERDICT_RULES.use_overcomes_body.label, '暂不宜强行推进');
+});
+
+test('v2 category and focus rules cover every selectable category', () => {
+  assert.deepEqual(Object.keys(CATEGORY_GUIDANCE).sort(), ['career', 'general', 'relationship', 'study', 'travel']);
+  assert.ok(Object.values(CATEGORY_GUIDANCE).every((rule) => rule.subject && rule.verification));
+  assert.ok(FOCUS_ACTIONS.timing.includes('启动条件'));
+  assert.ok(FOCUS_ACTIONS.collaboration.includes('责任'));
+  assert.ok(STRENGTH_ADJUSTMENTS.weakened.includes('暂不宜扩大'));
 });
