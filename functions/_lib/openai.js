@@ -4,6 +4,7 @@ import { buildOpenAIInput } from './prompt.js';
 const REQUIRED_FIELDS = AI_READING_JSON_SCHEMA.required;
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1';
 const DEFAULT_MODEL = 'gpt-5.5';
+export const DEFAULT_AI_TIMEOUT_MS = 180_000;
 
 export class OpenAIRequestError extends Error {
   constructor(code) {
@@ -63,10 +64,6 @@ function parseChatCompletionsOutput(response) {
   return { reading: parseReading(message.content) };
 }
 
-function canFallbackToChatCompletions(status, isRelay) {
-  return isRelay && status !== 401 && status !== 403 && status !== 429 && status >= 400;
-}
-
 function chatMessages(payload, risk) {
   return buildOpenAIInput(payload, risk).map(({ role, content }) => ({
     role,
@@ -101,13 +98,16 @@ async function requestChatCompletions({ requestUrl, apiKey, model, payload, risk
   return { status: 'completed', responseId: data.id, model: data.model, reading: parsed.reading };
 }
 
-export async function requestAiReading({ apiKey, baseUrl, model, payload, risk, fetchImpl = fetch, timeoutMs = 45_000 }) {
+export async function requestAiReading({ apiKey, baseUrl, model, payload, risk, fetchImpl = fetch, timeoutMs = DEFAULT_AI_TIMEOUT_MS }) {
   if (!apiKey) throw new OpenAIRequestError('provider_not_configured');
   const urls = providerUrls(baseUrl);
   const requestModel = String(model || DEFAULT_MODEL).trim() || DEFAULT_MODEL;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
+    if (urls.isRelay) {
+      return await requestChatCompletions({ requestUrl: urls.chatCompletions, apiKey, model: requestModel, payload, risk, fetchImpl, signal: controller.signal });
+    }
     let response;
     try {
       response = await fetchImpl(urls.responses, {
@@ -126,12 +126,7 @@ export async function requestAiReading({ apiKey, baseUrl, model, payload, risk, 
     } catch (error) {
       throw new OpenAIRequestError(error?.name === 'AbortError' ? 'provider_timeout' : 'provider_network_error');
     }
-    if (!response.ok) {
-      if (canFallbackToChatCompletions(response.status, urls.isRelay)) {
-        return await requestChatCompletions({ requestUrl: urls.chatCompletions, apiKey, model: requestModel, payload, risk, fetchImpl, signal: controller.signal });
-      }
-      throw new OpenAIRequestError(providerCode(response.status));
-    }
+    if (!response.ok) throw new OpenAIRequestError(providerCode(response.status));
     let data;
     try { data = await response.json(); } catch { throw new OpenAIRequestError('provider_invalid_output'); }
     const parsed = parseResponsesOutput(data);
