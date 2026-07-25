@@ -43,3 +43,46 @@ test('sync manager switches to retry endpoint after server creates a failed read
   assert.deepEqual(calls, ['create', 'retry:cloud-1']);
   assert.equal((await repository.getRecord('gua-1')).ai.status, 'completed');
 });
+
+test('sync manager force-retries completed legacy AI readings', async () => {
+  const repository = createRepository(createMemoryStorage());
+  const legacy = { ...record, ai: { status: 'completed', readingId: 'cloud-legacy', reading: { overall_judgment: '旧版结果' } } };
+  await repository.saveRecord(legacy);
+  let retryOptions;
+  const manager = createSyncManager({ repository, deviceId: '11111111-2222-4333-8444-555555555555', client: {
+    retry: async (_id, _deviceId, options) => { retryOptions = options; return { id: 'cloud-legacy', status: 'completed', aiReading: { comprehensive_hexagram_reading: { conclusions: ['新版结果'] } }, errorCode: null }; }
+  } });
+
+  await manager.retryRecord(legacy);
+
+  assert.deepEqual(retryOptions, { force: true });
+  assert.deepEqual((await repository.getRecord('gua-1')).ai.reading.comprehensive_hexagram_reading.conclusions, ['新版结果']);
+});
+
+test('sync manager upgrades a completed legacy AI reading without a cloud ID in one retry', async () => {
+  const repository = createRepository(createMemoryStorage());
+  const legacy = { ...record, ai: { status: 'completed', readingId: null, reading: { overall_judgment: '旧版结果' } } };
+  await repository.saveRecord(legacy);
+  let createCalls = 0;
+  let retryCalls = 0;
+  let retryOptions;
+  const manager = createSyncManager({ repository, deviceId: '11111111-2222-4333-8444-555555555555', client: {
+    create: async () => {
+      createCalls += 1;
+      return { id: 'cloud-legacy', status: 'completed', aiReading: { overall_judgment: '旧版结果' }, errorCode: null };
+    },
+    retry: async (_id, _deviceId, options) => {
+      retryCalls += 1;
+      retryOptions = options;
+      return { id: 'cloud-legacy', status: 'completed', aiReading: { comprehensive_hexagram_reading: { conclusions: ['新版结果'] } }, errorCode: null };
+    }
+  } });
+
+  const ai = await manager.retryRecord(legacy);
+
+  assert.equal(createCalls, 1);
+  assert.equal(retryCalls, 1);
+  assert.deepEqual(retryOptions, { force: true });
+  assert.deepEqual(ai.reading.comprehensive_hexagram_reading.conclusions, ['新版结果']);
+  assert.deepEqual((await repository.getRecord('gua-1')).ai.reading.comprehensive_hexagram_reading.conclusions, ['新版结果']);
+});
