@@ -1,5 +1,7 @@
 # 卦象解读白话辅助 Implementation Plan
 
+**Date:** 2026-07-25
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在不改变卦象计算与风险边界的前提下，为体用、旺衰、阻碍和动爻解读增加紧随术语的白话括注与现实行动提醒。
