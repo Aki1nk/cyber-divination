@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { RELATION_TEXT, RISK_BOUNDARIES, STRENGTH_TEXT } from '../../src/data/interpretation-rules.js';
+import { CATEGORY_GUIDANCE, FOCUS_ACTIONS, RELATION_TEXT, RISK_BOUNDARIES, STRENGTH_ADJUSTMENTS, STRENGTH_TEXT, VERDICT_RULES } from '../../src/data/interpretation-rules.js';
 import { classifyRisk } from '../../src/domain/risk.js';
 import { interpret } from '../../src/domain/interpretation.js';
 import { createClassicsIndex } from '../../src/data/classics.js';
@@ -87,4 +87,27 @@ test('classics index normalizes judgments, lines and special lines', async () =>
   assert.equal(classics.get('111111').lineTexts.length, 6);
   assert.equal(classics.get('111111').specialLines.length, 1);
   assert.equal(classics.get('100010').name, '屯');
+});
+
+test('v2 verdict rules explicitly cover all five body-use relations', () => {
+  assert.deepEqual(Object.keys(VERDICT_RULES).sort(), [
+    'body_generates_use',
+    'body_overcomes_use',
+    'same_element',
+    'use_generates_body',
+    'use_overcomes_body'
+  ]);
+  assert.equal(VERDICT_RULES.body_overcomes_use.label, '宜主动推进');
+  assert.equal(VERDICT_RULES.use_generates_body.label, '宜借力推进');
+  assert.equal(VERDICT_RULES.same_element.label, '宜稳步推进');
+  assert.equal(VERDICT_RULES.body_generates_use.label, '宜控制投入后推进');
+  assert.equal(VERDICT_RULES.use_overcomes_body.label, '暂不宜强行推进');
+});
+
+test('v2 category and focus rules cover every selectable category', () => {
+  assert.deepEqual(Object.keys(CATEGORY_GUIDANCE).sort(), ['career', 'general', 'relationship', 'study', 'travel']);
+  assert.ok(Object.values(CATEGORY_GUIDANCE).every((rule) => rule.subject && rule.verification));
+  assert.ok(FOCUS_ACTIONS.timing.includes('启动条件'));
+  assert.ok(FOCUS_ACTIONS.collaboration.includes('责任'));
+  assert.ok(STRENGTH_ADJUSTMENTS.weakened.includes('暂不宜扩大'));
 });
