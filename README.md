@@ -1,6 +1,6 @@
 # 赛博天师｜梅花易数 · 易经推演
 
-移动优先、可离线起卦的传统文化 PWA。应用先按确定性本地规则生成本卦、互卦、变卦、动爻、体用、五行旺衰、经典原文和九段式解释，再通过 Cloudflare Pages Functions 调用兼容 Responses API 的 AI 服务，以 `gpt-5.4-mini` 生成紧扣问题的第二层结构化深解。
+移动优先、可离线起卦的传统文化 PWA。应用先按确定性本地规则生成本卦、互卦、变卦、动爻、体用、五行旺衰、经典原文和九段式解释，再通过 Cloudflare Pages Functions 调用兼容 Responses API 的 AI 服务，以 `gpt-5.5` 生成紧扣问题的第二层结构化深解。
 
 > 本项目用于传统文化学习与自我反思，不替代医疗、法律、投资等专业意见，也不承诺具体结果。
 
@@ -41,8 +41,8 @@ Output directory: dist
 Root directory: /
 Pages Functions directory: functions/
 D1 binding: DB
-Secrets: OPENAI_API_KEY, ADMIN_PASSWORD_HASH, ADMIN_SESSION_SECRET
-Variables: OPENAI_BASE_URL=https://tokunex.com/v1, OPENAI_MODEL=gpt-5.4-mini
+Secrets: OPENAI_API_KEY, ADMIN_PASSWORD, ADMIN_SESSION_SECRET
+Variables: OPENAI_BASE_URL=https://tokunex.com/v1, OPENAI_MODEL=gpt-5.5
 ```
 
 构建会把 `_headers`、`robots.txt`、管理后台与带 12 位内容哈希的应用构建号写入 `dist/`。`_headers` 启用严格 CSP、点击劫持防护、权限收敛，并明确禁止缓存管理后台和 API。
@@ -51,12 +51,12 @@ Variables: OPENAI_BASE_URL=https://tokunex.com/v1, OPENAI_MODEL=gpt-5.4-mini
 
 1. 创建 D1 数据库，并将 Pages Functions 绑定名设为 `DB`。
 2. 执行 `migrations/0001_cloud_readings.sql`。
-3. 在 Pages 的生产与预览环境分别设置 `OPENAI_API_KEY`、`ADMIN_PASSWORD_HASH`、`ADMIN_SESSION_SECRET` 三个加密 Secret；设置普通文本变量 `OPENAI_BASE_URL=https://tokunex.com/v1` 和 `OPENAI_MODEL=gpt-5.4-mini`。不要把 Secret 写入 Git、聊天记录或普通环境变量文件。
-4. 运行 `npm run hash-admin-password` 在本机生成 `ADMIN_PASSWORD_HASH`；`ADMIN_SESSION_SECRET` 使用高强度随机字符串。
+3. 在 Pages 的生产与预览环境分别设置 `OPENAI_API_KEY`、`ADMIN_PASSWORD`、`ADMIN_SESSION_SECRET` 三个加密 Secret；设置普通文本变量 `OPENAI_BASE_URL=https://tokunex.com/v1` 和 `OPENAI_MODEL=gpt-5.5`。不要把 Secret 写入 Git、聊天记录或普通环境变量文件。
+4. `ADMIN_PASSWORD` 使用密码管理器生成并直接填入 Cloudflare Secret，不在终端、代码或聊天中展示；`ADMIN_SESSION_SECRET` 使用独立的高强度随机字符串。
 5. `wrangler.example.jsonc` 是 Pages 配置模板，填入真实 D1 database ID 后再复制为 `wrangler.jsonc`。未填真实 ID 时不要提交活动配置，以免中断自动部署。
 6. 将 `cleanup-worker/wrangler.jsonc` 中的 D1 ID 替换为同一个数据库，部署独立清理 Worker；Cron 每天北京时间 02:15（UTC 18:15）删除过期记录。
 
-AI 请求固定使用 Responses API 协议、`reasoning.effort: medium`、严格 JSON Schema、`store: false`，且不启用网页搜索、文件搜索、代码执行或任何工具。未设置 `OPENAI_BASE_URL` 时默认请求官方 OpenAI 地址；生产环境当前通过 Tokunex 中转站提交给 `gpt-5.4-mini`。`store: false` 是请求参数，不代表中转站或其上游供应商必然不保留数据。
+AI 请求固定使用 Responses API 协议、`reasoning.effort: medium`、严格 JSON Schema、`store: false`，且不启用网页搜索、文件搜索、代码执行或任何工具。未设置 `OPENAI_BASE_URL` 时默认请求官方 OpenAI 地址；生产环境当前通过 Tokunex 中转站提交给 `gpt-5.5`。`store: false` 是请求参数，不代表中转站或其上游供应商必然不保留数据。
 
 重新生成自有 PWA 图标：
 

@@ -6,7 +6,6 @@
   "scripts": {
     "test": "node --test",
     "build": "node tools/build.mjs",
-    "dev": "node tools/dev-server.mjs --root . --port 4173",
-    "hash-admin-password": "node tools/hash-admin-password.mjs"
+    "dev": "node tools/dev-server.mjs --root . --port 4173"
   }
 }

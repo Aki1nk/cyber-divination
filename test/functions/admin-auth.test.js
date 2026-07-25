@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hashAdminPassword, verifyAdminPassword, createAdminSession, verifyAdminSession, adminCookie } from '../../functions/_lib/admin-auth.js';
+import { verifyAdminSecret, createAdminSession, verifyAdminSession, adminCookie } from '../../functions/_lib/admin-auth.js';
 
-test('admin password uses PBKDF2 and verifies without storing plaintext', async () => {
-  const hash = await hashAdminPassword('correct horse battery staple', { iterations: 1000, salt: new Uint8Array(16).fill(7) });
-  assert.match(hash, /^pbkdf2\$1000\$/);
-  assert.equal(hash.includes('correct horse'), false);
-  assert.equal(await verifyAdminPassword('correct horse battery staple', hash), true);
-  assert.equal(await verifyAdminPassword('wrong', hash), false);
+test('admin plaintext secret is compared without direct string equality', async () => {
+  assert.equal(await verifyAdminSecret('correct horse battery staple', 'correct horse battery staple'), true);
+  assert.equal(await verifyAdminSecret('wrong', 'correct horse battery staple'), false);
+  assert.equal(await verifyAdminSecret('密碼一二三', '密碼一二三'), true);
+  assert.equal(await verifyAdminSecret('', ''), false);
+  assert.equal(await verifyAdminSecret('short', 'a much longer password'), false);
 });
 
 test('signed admin session expires and cookie is hardened', async () => {
