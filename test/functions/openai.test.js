@@ -14,7 +14,7 @@ test('OpenAI request uses approved model and structured output settings', async 
   };
   const result = await requestAiReading({ apiKey: 'test-key', payload: { question: { text: '项目能否排期？', background: '' }, casting: {}, localReading: {} }, risk: { level: 'normal', categories: [] }, fetchImpl });
   assert.equal(request.url, 'https://api.openai.com/v1/responses');
-  assert.equal(request.body.model, 'gpt-5.4-mini');
+  assert.equal(request.body.model, 'gpt-5.5');
   assert.deepEqual(request.body.reasoning, { effort: 'medium' });
   assert.equal(request.body.store, false);
   assert.deepEqual(request.body.tools, []);

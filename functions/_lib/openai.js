@@ -3,7 +3,7 @@ import { buildOpenAIInput } from './prompt.js';
 
 const REQUIRED_FIELDS = AI_READING_JSON_SCHEMA.required;
 const DEFAULT_BASE_URL = 'https://api.openai.com/v1';
-const DEFAULT_MODEL = 'gpt-5.4-mini';
+const DEFAULT_MODEL = 'gpt-5.5';
 
 export class OpenAIRequestError extends Error {
   constructor(code) {
