@@ -35,6 +35,41 @@ test('Responses-compatible relay URL and configured model are used', async () =>
   assert.equal(request.body.model, 'gpt-5.4-mini');
 });
 
+test('relay falls back to Chat Completions when Responses returns 5xx', async () => {
+  const requests = [];
+  const fetchImpl = async (url, options) => {
+    const body = JSON.parse(options.body);
+    requests.push({ url, body });
+    if (url.endsWith('/responses')) return new Response('relay does not support Responses', { status: 502 });
+    return new Response(JSON.stringify({
+      id: 'chatcmpl_relay',
+      model: 'gpt-5.4-mini',
+      choices: [{ message: { content: JSON.stringify(reading) } }]
+    }), { status: 200 });
+  };
+
+  const result = await requestAiReading({
+    apiKey: 'relay-key',
+    baseUrl: 'https://tokunex.com/v1',
+    model: 'gpt-5.4-mini',
+    payload: { question: { text: 'x', background: '' }, casting: {}, localReading: {} },
+    risk: { level: 'normal', categories: [] },
+    fetchImpl
+  });
+
+  assert.deepEqual(requests.map((request) => request.url), [
+    'https://tokunex.com/v1/responses',
+    'https://tokunex.com/v1/chat/completions'
+  ]);
+  assert.equal(requests[1].body.model, 'gpt-5.4-mini');
+  assert.equal(requests[1].body.reasoning_effort, 'medium');
+  assert.equal(requests[1].body.store, false);
+  assert.equal(requests[1].body.response_format.type, 'json_schema');
+  assert.equal(requests[1].body.response_format.json_schema.strict, true);
+  assert.equal(result.status, 'completed');
+  assert.equal(result.reading.action_steps.length, 1);
+});
+
 test('complete Responses URL is not duplicated and insecure providers are rejected', async () => {
   let requestUrl;
   const fetchImpl = async (url) => {
