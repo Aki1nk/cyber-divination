@@ -37,6 +37,21 @@ test('retry requires the same anonymous device', async () => {
   assert.equal((await response.json()).status, 'completed');
 });
 
+test('retry force-regenerates a completed legacy reading', async () => {
+  let aiCalls = 0;
+  const repository = {
+    getForDevice: async () => ({ id: 'reading-legacy', payload, risk_level: 'normal', riskCategories: [], status: 'completed', aiReading: { overall_judgment: '旧版结果' } }),
+    markProcessing: async () => {}, complete: async () => {}, addAttempt: async () => {}
+  };
+  const response = await handleRetryReading({
+    request: new Request('https://example.com/retry', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deviceId: payload.deviceId, force: true }) }),
+    env: { OPENAI_API_KEY: 'key' }, readingId: 'reading-legacy', repository,
+    ai: async () => { aiCalls += 1; return { status: 'completed', reading: { comprehensive_hexagram_reading: { conclusions: ['新版结果'] } } }; }
+  });
+  assert.equal(aiCalls, 1);
+  assert.equal((await response.json()).status, 'completed');
+});
+
 test('concurrent idempotent create returns the row inserted by another request', async () => {
   let lookups = 0;
   const repository = {

@@ -52,6 +52,14 @@ test('completed AI reading renders every structured field and concrete actions',
   assert.match(html, /不宜直接锁定正式排期/);
 });
 
+test('completed legacy AI reading exposes a comprehensive upgrade action', () => {
+  const html = renderResult({ ...record, id: 'gua-old-ai', ai: { status: 'completed', readingId: 'cloud-old', reading: {
+    overall_judgment: '旧版结论', question_connection: '旧版关联', hexagram_synthesis: '旧版综合', current_situation: '旧版局势', development_path: '旧版路径', future_tendency: '旧版倾向', favorable_factors: ['旧版有利'], obstacles: ['旧版阻碍'], action_steps: ['旧版行动'], avoid_actions: ['旧版不宜'], verification_signals: ['旧版验证'], limitations: '旧版边界'
+  } } });
+  assert.match(html, /生成新版综合卦象解读/);
+  assert.match(html, /data-ai-retry='gua-old-ai'/);
+});
+
 test('failed AI state keeps local result and exposes retry', () => {
   const html = renderResult({ ...record, id: 'gua-1', ai: { status: 'failed', errorCode: 'provider_unavailable' } });
   assert.match(html, /本地解读仍然有效/);
@@ -111,4 +119,40 @@ test('v1 records still render without question context', () => {
   const html = renderResult(record);
   assert.match(html, /宜先整顿基础/);
   assert.doesNotMatch(html, /问题解析/);
+});
+test('legacy result without AI state exposes an explicit generation action', () => {
+  const html = renderResult({ ...record, id: 'gua-legacy' });
+  assert.match(html, /生成 AI 深解/);
+  assert.match(html, /data-ai-retry/);
+});
+
+test('completed AI reading renders the comprehensive hexagram interpretation', () => {
+  const html = renderResult({ ...record, id: 'gua-comprehensive', ai: { status: 'completed', readingId: 'cloud-comprehensive', reading: {
+    comprehensive_hexagram_reading: {
+      foundation_summary: '本卦巽为风，互卦火泽睽，变卦风山渐；体用比和。',
+      foundation_points: ['本卦主相持。', '互卦提示分歧。', '变卦代表渐进。'],
+      core_summary: '体用同气，双方力量接近。',
+      strengths: ['根基平稳'],
+      weaknesses: ['进攻爆发力不足'],
+      key_risks: ['中段出现配合断层'],
+      trend_summary: '局势循序推进，结果不会一边倒。',
+      trend_branches: ['若主动修正失误，则逐步改善。', '若继续维持当前节奏，则仍会反复拉扯。'],
+      conclusions: ['宜稳步推进。', '不宜追求一次性定论。', '需以现实反馈复核。'],
+      disclaimer: '卦象仅作趋势参考，请以现实信息和专业建议为准。'
+    },
+    overall_judgment: '宜先观察。', question_connection: '紧扣所问。', hexagram_synthesis: '综合三卦。', current_situation: '当前局势。', development_path: '发展路径。', future_tendency: '后续倾向。', favorable_factors: ['基础稳定'], obstacles: ['存在阻碍'], action_steps: ['先核验事实'], avoid_actions: ['不宜冲动'], verification_signals: ['现实反馈明确'], limitations: '文化辅助分析。'
+  } } });
+  assert.match(html, /综合卦象解读/);
+  assert.match(html, /一、卦局基础/);
+  assert.match(html, /二、体用与问题核心/);
+  assert.match(html, /三、变卦整体走势/);
+  assert.match(html, /四、综合结论/);
+  assert.match(html, /根基平稳/);
+  assert.match(html, /进攻爆发力不足/);
+  assert.match(html, /中段出现配合断层/);
+  assert.match(html, /若主动修正失误/);
+  assert.match(html, /若继续维持当前节奏/);
+  assert.match(html, /宜稳步推进/);
+  assert.match(html, /不宜追求一次性定论/);
+  assert.match(html, /卦象仅作趋势参考/);
 });

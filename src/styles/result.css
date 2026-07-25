@@ -51,4 +51,13 @@
 .ai-status-card { display: grid; gap: .75rem; justify-items: start; }
 .ai-status-card--error { border-color: rgb(169 69 55 / 58%); }
 .ai-status-card small { color: var(--color-muted); }
+.ai-comprehensive { display: grid; gap: 1rem; }
+.ai-comprehensive > header, .ai-comprehensive-section, .ai-comprehensive-disclaimer { border: 1px solid rgb(185 155 82 / 30%); border-radius: var(--radius-md); background: linear-gradient(145deg, rgb(38 42 24 / 82%), rgb(11 28 24 / 92%)); padding: 1rem; }
+.ai-comprehensive > header { border-color: rgb(225 195 116 / 62%); }
+.ai-comprehensive > header p { margin: 0; color: var(--color-muted); }
+.ai-comprehensive h2, .ai-comprehensive h3, .ai-comprehensive h4 { margin-top: 0; color: var(--color-gold-bright); }
+.ai-comprehensive-section p, .ai-comprehensive-section li, .ai-comprehensive-disclaimer p { line-height: 1.85; }
+.ai-comprehensive-section ul, .ai-comprehensive-section ol { display: grid; gap: .65rem; padding-left: 1.25rem; }
+.ai-comprehensive-disclaimer { border-style: dashed; color: var(--color-muted); }
+.ai-comprehensive-disclaimer strong { color: var(--color-gold-bright); }
 @media (max-width: 36rem) { .result-tabs { border-radius: var(--radius-sm); } .result-tabs button { font-size: .75rem; } }
