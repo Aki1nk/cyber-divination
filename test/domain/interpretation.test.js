@@ -1,10 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { RELATION_TEXT, STRENGTH_TEXT } from '../../src/data/interpretation-rules.js';
+import { RELATION_TEXT, RISK_BOUNDARIES, STRENGTH_TEXT } from '../../src/data/interpretation-rules.js';
 import { classifyRisk } from '../../src/domain/risk.js';
 import { interpret } from '../../src/domain/interpretation.js';
 import { createClassicsIndex } from '../../src/data/classics.js';
+
+function interpretationInput(overrides = {}) {
+  return {
+    category: 'career',
+    relation: 'body_overcomes_use',
+    bodyStrength: 'prosperous',
+    useStrength: 'resting',
+    originalName: '家人',
+    mutualName: '未济',
+    changedName: '贲',
+    movingLineText: '九三：家人嗃嗃。',
+    risk: { level: 'normal', categories: [] },
+    ...overrides
+  };
+}
 
 test('medical, investment and urgent self-harm questions receive boundaries', () => {
   assert.equal(classifyRisk('这个药能不能治好我的病').level, 'high');
@@ -32,20 +47,37 @@ test('body strength retains terms and explains practical meaning', () => {
 });
 
 test('interpretation exposes reasons and avoids forbidden certainty', () => {
-  const output = interpret({
-    category: 'career',
-    relation: 'body_overcomes_use',
-    bodyStrength: 'prosperous',
-    useStrength: 'resting',
-    originalName: '家人',
-    mutualName: '未济',
-    changedName: '贲',
-    movingLineText: '九三：家人嗃嗃。',
-    risk: { level: 'normal', categories: [] }
-  });
+  const output = interpret(interpretationInput());
   assert.deepEqual(output.sections.map((section) => section.id), ['summary', 'favorable', 'obstacles', 'timing', 'action']);
   assert.ok(output.sections.every((section) => section.reasonKeys.length > 0));
   assert.doesNotMatch(JSON.stringify(output), /必然|稳赚|包治|一定分手/);
+});
+
+test('interpretation explains obstacles, timing and action in everyday language', () => {
+  const output = interpret(interpretationInput());
+  const sections = Object.fromEntries(output.sections.map((section) => [section.id, section]));
+
+  assert.match(sections.summary.text, /体克用（你目前仍有主动权）/);
+  assert.equal(sections.obstacles.text, '信息与执行仍有缺口（容易卡在前提不清或落实偏差）：先核对关键条件，再决定下一步。');
+  assert.equal(sections.timing.text, '动爻所示为“九三：家人嗃嗃。”。动爻（事情正在变化的位置）提示你留意当前阶段的转折；这是阶段提醒，不是具体日期或结果保证。');
+  assert.equal(sections.action.text, '行动宜从小处验证（先做一个能撤回、损失可控的步骤）：根据现实反馈再调整，不把卦象当作唯一决策依据。');
+});
+
+test('strong use conditions receive a plain-language obstacle explanation', () => {
+  const output = interpret(interpretationInput({ useStrength: 'prosperous' }));
+  const obstacles = output.sections.find((section) => section.id === 'obstacles');
+
+  assert.equal(obstacles.text, '用势较强（外部条件对事情的影响更大）：你的安排可能受到牵制，宜提前准备协商方案。');
+});
+
+test('high-risk advice still replaces the ordinary action suggestion', () => {
+  const output = interpret(interpretationInput({
+    risk: { level: 'high', categories: ['medical'] }
+  }));
+  const action = output.sections.find((section) => section.id === 'action');
+
+  assert.equal(action.text, RISK_BOUNDARIES.medical);
+  assert.deepEqual(action.reasonKeys, ['risk:high', 'risk_category:medical']);
 });
 
 test('classics index normalizes judgments, lines and special lines', async () => {
