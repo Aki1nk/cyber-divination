@@ -65,9 +65,10 @@ function renderAiList(title, items = []) {
   return `<article class="ai-reading-card"><h2>${escapeHtml(title)}</h2><ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul></article>`;
 }
 
-function renderAi(model) {
+function renderAiLegacy(model) {
   const ai = model.tabs.ai;
   const boundary = model.risk.level === 'normal' ? '' : renderRiskBanner(model.risk);
+  if (ai.status === 'not_requested') return `${boundary}<article class='ai-status-card'><h2>此卦暂无 AI 深解</h2><p>这是旧版或尚未上传的本地记录。本地解读与排盘依据仍可正常查看；如需生成深解，将上传问题、背景与排盘事实。</p>${model.id ? `<button type='button' class='secondary-action' data-ai-retry='${escapeHtml(model.id)}'>生成 AI 深解</button>` : ''}</article>`;
   if (ai.status === 'pending') return `${boundary}<article class="ai-status-card" role="status"><h2>AI 深解生成中</h2><p>本地解读已经完成，正在准备上传问题、背景与排盘事实。</p></article>`;
   if (ai.status === 'queued') return `${boundary}<article class="ai-status-card" role="status"><h2>等待联网上传</h2><p>任务已保存在本机队列；联网后会自动上传并生成深解，本地解读仍然有效。</p></article>`;
   if (ai.status === 'failed') return `${boundary}<article class="ai-status-card ai-status-card--error" role="status"><h2>AI 深解暂不可用</h2><p>云端服务本次没有完成解读，本地解读仍然有效，不需要重新起卦。</p><button type="button" class="secondary-action" data-ai-retry="${escapeHtml(model.id ?? '')}">重试 AI 深解</button><small>错误代码：${escapeHtml(ai.errorCode ?? 'unknown')}</small></article>`;
@@ -92,6 +93,29 @@ function renderAi(model) {
     ${renderAiList('现实验证信号', reading.verification_signals)}
     <article class="ai-reading-card ai-reading-card--limitations"><h2>适用边界</h2><p>${escapeHtml(reading.limitations ?? '')}</p></article>
   </div>`;
+}
+
+function renderAiComprehensive(reading) {
+  const section = reading?.comprehensive_hexagram_reading;
+  if (!section) return '';
+  const renderList = (title, items = [], ordered = false) => `${title ? `<h4>${escapeHtml(title)}</h4>` : ''}<${ordered ? 'ol' : 'ul'}>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</${ordered ? 'ol' : 'ul'}>`;
+  return `<section class='ai-comprehensive' aria-labelledby='ai-comprehensive-title'>
+    <header><p>结合本卦、互卦、变卦与体用关系的综合判断</p><h2 id='ai-comprehensive-title'>综合卦象解读</h2></header>
+    <article class='ai-comprehensive-section'><h3>一、卦局基础</h3><p>${escapeHtml(section.foundation_summary)}</p>${renderList('卦局要点', section.foundation_points)}</article>
+    <article class='ai-comprehensive-section'><h3>二、体用与问题核心</h3><p>${escapeHtml(section.core_summary)}</p>${renderList('有利条件', section.strengths)}${renderList('不足与限制', section.weaknesses)}${renderList('关键隐患', section.key_risks)}</article>
+    <article class='ai-comprehensive-section'><h3>三、变卦整体走势</h3><p>${escapeHtml(section.trend_summary)}</p>${renderList('条件分支', section.trend_branches)}</article>
+    <article class='ai-comprehensive-section'><h3>四、综合结论</h3>${renderList('', section.conclusions, true)}</article>
+    <aside class='ai-comprehensive-disclaimer'><strong>温馨提示</strong><p>${escapeHtml(section.disclaimer)}</p></aside>
+  </section>`;
+}
+
+function renderAi(model) {
+  const reading = model.tabs.ai.reading;
+  const comprehensive = model.tabs.ai.status === 'completed' ? renderAiComprehensive(reading) : '';
+  const upgrade = model.tabs.ai.status === 'completed' && reading && !reading.comprehensive_hexagram_reading && model.id
+    ? `<article class='ai-status-card'><h2>生成新版综合卦象解读</h2><p>这条 AI 深解由旧版结构生成，可保留原内容并重新生成四段式综合卦象解读。</p><button type='button' class='secondary-action' data-ai-retry='${escapeHtml(model.id)}'>生成新版综合卦象解读</button></article>`
+    : '';
+  return `${comprehensive}${upgrade}${renderAiLegacy(model)}`;
 }
 
 function renderHexagrams(model) {
