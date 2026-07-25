@@ -9,6 +9,10 @@ import {
 } from '../data/interpretation-rules.js';
 import { analyzeQuestion } from './question-context.js';
 
+function trimTerminalPunctuation(text) {
+  return String(text).replace(/[\u3002\uFF1B;!???\s]+$/u, '');
+}
+
 function section(id, title, text, reasonKeys) {
   return Object.freeze({ id, title, text, reasonKeys: Object.freeze([...reasonKeys]) });
 }
@@ -99,10 +103,10 @@ export function interpret(input) {
     : `${directLead(context.intent)}。针对“${String(input.question).trim()}”，当前判断是${verdictRule.label}；${verdictRule.advice}`;
   const actionText = boundary
     ? boundary
-    : `第一步：${firstStep}；第二步：${original.actions[0]}；第三步：达到“${categoryRule.verification}”后，再决定是否扩大行动。`;
+    : `第一步：${firstStep}；第二步：${trimTerminalPunctuation(original.actions[0])}；第三步：达到“${categoryRule.verification}”后，再决定是否扩大行动。`;
   const avoidText = boundary
     ? boundary
-    : `暂不宜：${original.cautions[0]}；验证标准：${categoryRule.verification}。`;
+    : `暂不宜：${trimTerminalPunctuation(original.cautions[0])}；验证标准：${categoryRule.verification}。`;
 
   return Object.freeze({
     profileId: 'local-deterministic-v2',

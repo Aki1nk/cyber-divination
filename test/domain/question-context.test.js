@@ -67,4 +67,3 @@ test('parser outputs are deeply frozen', () => {
   assert.ok(Object.isFrozen(context.timeSignals));
   assert.ok(Object.isFrozen(context.reasonKeys));
 });
-

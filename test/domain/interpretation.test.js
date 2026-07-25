@@ -132,6 +132,7 @@ test('urgent self-harm interpretation stops divination framing and prioritizes h
 test('v2 output avoids forbidden certainty and fabricated promises', () => {
   const output = interpret(interpretationInput());
   assert.doesNotMatch(JSON.stringify(output), /必然|注定|一定成功|一定失败|稳赚|包治|治愈|必有灾祸/);
+  assert.doesNotMatch(JSON.stringify(output.sections), /\u3002\uFF1B/);
 });
 
 test('classics index normalizes judgments, lines and special lines', async () => {
