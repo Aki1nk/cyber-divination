@@ -14,3 +14,13 @@ test('production Wrangler config selects Tokunex GPT-5.5 and the existing D1 dat
     database_id: 'eca2150f-dfc3-4366-a53d-b8effc92f80a'
   }]);
 });
+
+test('production documentation uses plaintext admin secret without obsolete hash tooling', async () => {
+  const packageJson = JSON.parse(await readFile('package.json', 'utf8'));
+  const readme = await readFile('README.md', 'utf8');
+  assert.equal('hash-admin-password' in packageJson.scripts, false);
+  assert.match(readme, /ADMIN_PASSWORD/);
+  assert.doesNotMatch(readme, /ADMIN_PASSWORD_HASH/);
+  assert.doesNotMatch(readme, /hash-admin-password/);
+  assert.match(readme, /gpt-5\.5/);
+});

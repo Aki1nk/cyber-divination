@@ -26,21 +26,13 @@ function equalBytes(left, right) {
   return difference === 0;
 }
 
-async function pbkdf2(password, salt, iterations) {
-  const key = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
-  return new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, key, 256));
+async function sha256(value) {
+  return new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(value)));
 }
 
-export async function hashAdminPassword(password, { iterations = 210_000, salt = crypto.getRandomValues(new Uint8Array(16)) } = {}) {
-  const hash = await pbkdf2(password, salt, iterations);
-  return `pbkdf2$${iterations}$${bytesToBase64(salt)}$${bytesToBase64(hash)}`;
-}
-
-export async function verifyAdminPassword(password, encoded) {
-  const [scheme, iterationsText, saltText, hashText] = String(encoded ?? '').split('$');
-  const iterations = Number(iterationsText);
-  if (scheme !== 'pbkdf2' || !Number.isInteger(iterations) || iterations < 1 || !saltText || !hashText) return false;
-  try { return equalBytes(await pbkdf2(password, base64ToBytes(saltText), iterations), base64ToBytes(hashText)); } catch { return false; }
+export async function verifyAdminSecret(password, expected) {
+  if (!password || !expected) return false;
+  return equalBytes(await sha256(String(password)), await sha256(String(expected)));
 }
 
 async function sign(value, secret) {
