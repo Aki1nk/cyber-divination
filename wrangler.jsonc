@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "cyber-divination",
+  "compatibility_date": "2026-07-25",
+  "pages_build_output_dir": "./dist",
+  "vars": {
+    "OPENAI_BASE_URL": "https://tokunex.com/v1",
+    "OPENAI_MODEL": "gpt-5.5"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "cyber-divination-readings",
+      "database_id": "eca2150f-dfc3-4366-a53d-b8effc92f80a"
+    }
+  ]
+}
