@@ -42,16 +42,23 @@ export function createSyncManager({ repository, client, deviceId, now = () => ne
       return flushing;
     },
     async retryRecord(record) {
-      if (record.ai?.readingId) {
-        const response = await client.retry(record.ai.readingId, deviceId);
-        const ai = { status: response.status, readingId: response.id ?? record.ai.readingId, reading: response.aiReading ?? null, errorCode: response.errorCode ?? null, updatedAt: now().toISOString() };
-        await repository.patchRecord(record.id, { ai });
-        onRecordUpdated(record.id, ai);
-        return ai;
+      let current = record;
+      if (!current.ai?.readingId) {
+        await this.queue(current);
+        await this.flush();
+        current = await repository.getRecord(current.id);
+        const needsUpgrade = current.ai?.readingId
+          && current.ai.status === 'completed'
+          && !current.ai.reading?.comprehensive_hexagram_reading;
+        if (!needsUpgrade) return current.ai;
       }
-      await this.queue(record);
-      await this.flush();
-      return (await repository.getRecord(record.id)).ai;
+
+      const force = current.ai.status === 'completed' && !current.ai.reading?.comprehensive_hexagram_reading;
+      const response = await client.retry(current.ai.readingId, deviceId, { force });
+      const ai = { status: response.status, readingId: response.id ?? current.ai.readingId, reading: response.aiReading ?? null, errorCode: response.errorCode ?? null, updatedAt: now().toISOString() };
+      await repository.patchRecord(current.id, { ai });
+      onRecordUpdated(current.id, ai);
+      return ai;
     }
   });
 }
