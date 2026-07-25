@@ -33,9 +33,9 @@ test('admin session rejects an incorrect plaintext password', async () => {
 test('admin session requires both plaintext password and session secret', async () => {
   const missingPassword = await onRequestPost({ request: loginRequest('expected'), env: { ADMIN_SESSION_SECRET: 'session-secret' } });
   assert.equal(missingPassword.status, 503);
-  assert.deepEqual(await missingPassword.json(), { errorCode: 'admin_not_configured' });
+  assert.deepEqual(await missingPassword.json(), { errorCode: 'admin_not_configured', missing: ['ADMIN_PASSWORD'] });
 
   const missingSession = await onRequestPost({ request: loginRequest('expected'), env: { ADMIN_PASSWORD: 'expected' } });
   assert.equal(missingSession.status, 503);
-  assert.deepEqual(await missingSession.json(), { errorCode: 'admin_not_configured' });
+  assert.deepEqual(await missingSession.json(), { errorCode: 'admin_not_configured', missing: ['ADMIN_SESSION_SECRET'] });
 });
