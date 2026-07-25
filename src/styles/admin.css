@@ -14,6 +14,12 @@
 .admin-table-wrap th, .admin-table-wrap td { padding: .75rem; border-bottom: 1px solid var(--color-line); text-align: left; vertical-align: top; }
 .admin-table-wrap th { color: var(--color-gold-bright); }
 .admin-pagination { display: flex; justify-content: center; align-items: center; gap: 1rem; }
+.admin-tabs { display: flex; flex-wrap: wrap; gap: .6rem; }
+.admin-tabs .is-active { color: var(--color-gold-bright); border-color: var(--color-gold); }
+.admin-user-form { display: grid; gap: .8rem; padding: 1rem; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); }
+.admin-user-form label { display: grid; gap: .35rem; color: var(--color-muted); }
+.admin-user-form input, .admin-user-form select, .admin-user-form textarea { min-height: 2.8rem; padding: .65rem .75rem; border: 1px solid var(--color-line); border-radius: var(--radius-sm); color: var(--color-text); background: rgb(4 14 12 / 88%); }
+.admin-user-form textarea { min-height: 7rem; resize: vertical; }
 .admin-detail article { padding: 1rem; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); }
 .admin-detail pre { overflow: auto; max-height: 32rem; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--color-text); }
 .danger-action { min-height: 3rem; padding: .7rem 1rem; border: 1px solid #a94537; border-radius: var(--radius-sm); color: #ffd5cc; background: rgb(169 69 55 / 35%); }

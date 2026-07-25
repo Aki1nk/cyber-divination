@@ -19,15 +19,15 @@ function escapeLike(value) {
 export function createReadingsRepository(db, { now = () => new Date(), idFactory = () => crypto.randomUUID() } = {}) {
   if (!db?.prepare) throw new TypeError('缺少 D1 数据库绑定');
   return Object.freeze({
-    async findByIdempotency(deviceId, idempotencyKey) {
-      return parseRow(await db.prepare('SELECT * FROM readings WHERE device_id = ? AND idempotency_key = ? LIMIT 1').bind(deviceId, idempotencyKey).first());
+    async findByIdempotency(userId, deviceId, idempotencyKey) {
+      return parseRow(await db.prepare('SELECT * FROM readings WHERE user_id = ? AND device_id = ? AND idempotency_key = ? LIMIT 1').bind(userId, deviceId, idempotencyKey).first());
     },
-    async create(payload, risk) {
+    async create(payload, risk, userId) {
       const current = now();
       const createdAt = current.toISOString();
       const row = { id: idFactory(), createdAt, expiresAt: addDays(current, 30) };
-      await db.prepare(`INSERT INTO readings (id, device_id, idempotency_key, created_at, updated_at, expires_at, category, question, background, risk_level, risk_categories_json, status, payload_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`)
-        .bind(row.id, payload.deviceId, payload.idempotencyKey, createdAt, createdAt, row.expiresAt, payload.question.category, payload.question.text, payload.question.background, risk.level, JSON.stringify(risk.categories), JSON.stringify(payload)).run();
+      await db.prepare(`INSERT INTO readings (id, user_id, device_id, idempotency_key, created_at, updated_at, expires_at, category, question, background, risk_level, risk_categories_json, status, payload_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)`)
+        .bind(row.id, userId, payload.deviceId, payload.idempotencyKey, createdAt, createdAt, row.expiresAt, payload.question.category, payload.question.text, payload.question.background, risk.level, JSON.stringify(risk.categories), JSON.stringify(payload)).run();
       return row;
     },
     async markProcessing(id) {
@@ -51,6 +51,9 @@ export function createReadingsRepository(db, { now = () => new Date(), idFactory
     },
     async getForDevice(id, deviceId) {
       return parseRow(await db.prepare('SELECT * FROM readings WHERE id = ? AND device_id = ? LIMIT 1').bind(id, deviceId).first());
+    },
+    async getForUser(id, userId) {
+      return parseRow(await db.prepare('SELECT * FROM readings WHERE id = ? AND user_id = ? LIMIT 1').bind(id, userId).first());
     },
     async list({ q = '', status = '', category = '', page = 1, pageSize = 25 } = {}) {
       const safePage = Math.max(1, Number(page) || 1);

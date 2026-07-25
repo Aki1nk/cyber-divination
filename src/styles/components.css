@@ -42,3 +42,13 @@
 .form-status { min-height: 1.25rem; color: #e7a89c !important; text-align: center; }
 .history-card, .classic-card, .interpretation-card, .hexagram-card, .settings-form article, .danger-zone { box-shadow: var(--shadow-panel); }
 .history-card:hover, .classic-card:hover { border-color: rgb(185 155 82 / 45%); transform: translateY(-1px); }
+.auth-view { display: grid; width: min(100%, 30rem); margin: clamp(1.5rem, 8vh, 5rem) auto 0; gap: 1rem; padding: 1.25rem; border: 1px solid var(--color-line); border-radius: var(--radius-md); background: var(--color-panel); box-shadow: var(--shadow-panel); }
+.auth-heading { text-align: center; }
+.auth-heading p, .auth-heading span { margin: 0; color: var(--color-muted); }
+.auth-heading h1 { margin: .35rem 0; color: var(--color-gold-bright); font: 700 2rem var(--font-display); }
+.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.auth-tabs button { min-height: 2.7rem; border: 1px solid var(--color-line); border-radius: var(--radius-sm); color: var(--color-muted); background: rgb(4 14 12 / 60%); }
+.auth-tabs button.is-active { color: var(--color-gold-bright); border-color: var(--color-gold); background: rgb(185 155 82 / 12%); }
+.auth-form, .auth-form label { display: grid; gap: .65rem; }
+.auth-form input { min-height: 3rem; padding: .7rem .8rem; border: 1px solid var(--color-line); border-radius: var(--radius-sm); color: var(--color-text); background: rgb(4 14 12 / 88%); }
+.account-view { display: grid; gap: 1rem; }

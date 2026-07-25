@@ -1,7 +1,7 @@
 import { buildReadingUpload } from './reading-contract.js';
 import { createUploadTask, nextRetryAt } from './upload-queue.js';
 
-export function createSyncManager({ repository, client, deviceId, now = () => new Date(), onRecordUpdated = () => {} }) {
+export function createSyncManager({ repository, client, deviceId, getAccountId = null, now = () => new Date(), onRecordUpdated = () => {} }) {
   let flushing = null;
 
   async function applyResponse(task, response) {
@@ -29,7 +29,7 @@ export function createSyncManager({ repository, client, deviceId, now = () => ne
 
   return Object.freeze({
     async queue(record) {
-      const task = createUploadTask({ readingId: record.id, payload: buildReadingUpload(record, deviceId), createdAt: now().toISOString() });
+      const task = createUploadTask({ readingId: record.id, payload: buildReadingUpload(record, deviceId), accountId: getAccountId?.() ?? null, createdAt: now().toISOString() });
       await repository.enqueueUpload(task);
       await repository.patchRecord(record.id, { ai: { status: 'queued', readingId: null, reading: null, errorCode: null, updatedAt: now().toISOString() } });
       return task;
@@ -37,7 +37,11 @@ export function createSyncManager({ repository, client, deviceId, now = () => ne
     async flush() {
       if (flushing) return flushing;
       flushing = (async () => {
-        for (const task of await repository.listDueUploads(now())) await processTask(task);
+        const accountId = getAccountId?.() ?? null;
+        for (const task of await repository.listDueUploads(now())) {
+          if (getAccountId && task.accountId !== accountId) continue;
+          await processTask(task);
+        }
       })().finally(() => { flushing = null; });
       return flushing;
     },

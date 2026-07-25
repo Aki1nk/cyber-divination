@@ -8,7 +8,7 @@
 - v2 会明确给出“宜、暂不宜、宜先……再……”等非绝对结论，并保存问题解析依据；本地排盘不调用 AI，云端 AI 也不能改变任何排盘事实。
 - 已保存的 v1 卦例继续显示原始解读，不会自动重算或覆盖。
 - 所有新占问会上传问题、背景、排盘事实与本地解读。离线时本地结果照常生成，AI 请求进入本机队列，联网后自动上传。
-- 云端记录使用匿名设备编号聚合并保留 30 天；管理后台位于 `/admin`，只允许持有共享管理密码的人查看或删除。
+- 普通用户使用手机号和密码登录，注册必须消耗管理员后台创建的一次性邀请码；新云端卦录关联账户并保留 30 天。
 
 ## 本地运行
 
@@ -41,7 +41,7 @@ Output directory: dist
 Root directory: /
 Pages Functions directory: functions/
 D1 binding: DB
-Secrets: OPENAI_API_KEY, ADMIN_PASSWORD, ADMIN_SESSION_SECRET
+Secrets: OPENAI_API_KEY, ADMIN_PASSWORD, ADMIN_SESSION_SECRET, INVITE_CODE_ENCRYPTION_KEY
 Variables: OPENAI_BASE_URL=https://tokunex.com/v1, OPENAI_MODEL=gpt-5.5
 ```
 
@@ -50,9 +50,9 @@ Variables: OPENAI_BASE_URL=https://tokunex.com/v1, OPENAI_MODEL=gpt-5.5
 ### Cloudflare 数据与 Secrets
 
 1. 创建 D1 数据库，并将 Pages Functions 绑定名设为 `DB`。
-2. 执行 `migrations/0001_cloud_readings.sql`。
-3. 在 Pages 的生产与预览环境分别设置 `OPENAI_API_KEY`、`ADMIN_PASSWORD`、`ADMIN_SESSION_SECRET` 三个加密 Secret；设置普通文本变量 `OPENAI_BASE_URL=https://tokunex.com/v1` 和 `OPENAI_MODEL=gpt-5.5`。不要把 Secret 写入 Git、聊天记录或普通环境变量文件。
-4. `ADMIN_PASSWORD` 使用密码管理器生成并直接填入 Cloudflare Secret，不在终端、代码或聊天中展示；`ADMIN_SESSION_SECRET` 使用独立的高强度随机字符串。
+2. 依次执行 `migrations/0001_cloud_readings.sql` 和 `migrations/0002_user_auth.sql`。
+3. 在 Pages 的生产与预览环境分别设置 `OPENAI_API_KEY`、`ADMIN_PASSWORD`、`ADMIN_SESSION_SECRET`、`INVITE_CODE_ENCRYPTION_KEY` 四个加密 Secret；设置普通文本变量 `OPENAI_BASE_URL=https://tokunex.com/v1` 和 `OPENAI_MODEL=gpt-5.5`。
+4. `ADMIN_PASSWORD` 使用密码管理器生成；`ADMIN_SESSION_SECRET` 与 `INVITE_CODE_ENCRYPTION_KEY` 分别使用独立高强度随机字符串。
 5. `wrangler.example.jsonc` 是 Pages 配置模板，填入真实 D1 database ID 后再复制为 `wrangler.jsonc`。未填真实 ID 时不要提交活动配置，以免中断自动部署。
 6. 将 `cleanup-worker/wrangler.jsonc` 中的 D1 ID 替换为同一个数据库，部署独立清理 Worker；Cron 每天北京时间 02:15（UTC 18:15）删除过期记录。
 
@@ -83,7 +83,7 @@ node tools/vendor-assets.mjs
 ## 数据与安全
 
 - 卦录、设置、离线队列和 AI 状态保存在当前浏览器 `localStorage`；所有新占问同时进入云端 AI 流程。
-- 云端保存完整问题、背景、排盘、本地解读、风险分类和 AI 结果 30 天，不保存账号、邮箱、手机号或真实身份。
+- 账户保存手机号、可选昵称、密码哈希、邀请码使用记录和管理员私有备注；云端卦录关联账户并保存 30 天。
 - 管理后台使用共享密码和签名 HttpOnly Cookie，会话与管理 API 均禁止缓存。
 - 位置权限只在用户主动点击后请求，仅保存当次计算需要的经度和用户填写的城市标签。
 - 同一问题指纹在 24 小时内返回原记录，避免反复占问。
