@@ -11,15 +11,16 @@ export function createAccountRepository(db, { now = () => new Date() } = {}) {
     },
     async register({ user, password, session, inviteId }) {
       const usedAt = now().toISOString();
-      const claimed = await db.prepare("UPDATE invite_codes SET status = 'used', used_at = ?, used_by_user_id = ? WHERE id = ? AND status = 'active' AND (expires_at IS NULL OR expires_at > ?)").bind(usedAt, user.id, inviteId, usedAt).run();
+      const claimed = await db.prepare("UPDATE invite_codes SET status = 'used', used_at = ? WHERE id = ? AND status = 'active' AND (expires_at IS NULL OR expires_at > ?)").bind(usedAt, inviteId, usedAt).run();
       if ((claimed.meta?.changes ?? 0) !== 1) throw Object.assign(new Error('invalid_invite'), { code: 'invalid_invite' });
       try {
         await db.batch([
           db.prepare(`INSERT INTO users (id, phone, nickname, password_algorithm, password_iterations, password_salt, password_hash, password_version, status, must_change_password, admin_note, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', 0, '', ?, ?)`).bind(user.id, user.phone, user.nickname, ...passwordFields(password), user.createdAt, user.createdAt),
-          db.prepare('INSERT INTO user_sessions (token_hash, user_id, created_at, last_seen_at, expires_at) VALUES (?, ?, ?, ?, ?)').bind(session.tokenHash, user.id, session.createdAt, session.createdAt, session.expiresAt)
+          db.prepare('INSERT INTO user_sessions (token_hash, user_id, created_at, last_seen_at, expires_at) VALUES (?, ?, ?, ?, ?)').bind(session.tokenHash, user.id, session.createdAt, session.createdAt, session.expiresAt),
+          db.prepare('UPDATE invite_codes SET used_by_user_id = ? WHERE id = ?').bind(user.id, inviteId)
         ]);
       } catch (error) {
-        await db.prepare("UPDATE invite_codes SET status = 'active', used_at = NULL, used_by_user_id = NULL WHERE id = ? AND used_by_user_id = ?").bind(inviteId, user.id).run();
+        await db.prepare("UPDATE invite_codes SET status = 'active', used_at = NULL, used_by_user_id = NULL WHERE id = ? AND status = 'used' AND (used_by_user_id IS NULL OR used_by_user_id = ?)").bind(inviteId, user.id).run();
         throw error;
       }
     },
