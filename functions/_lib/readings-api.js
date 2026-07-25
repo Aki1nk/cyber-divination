@@ -4,10 +4,14 @@ import { requestAiReading, OpenAIRequestError } from './openai.js';
 import { createReadingsRepository } from './readings-repository.js';
 import { json, publicReading, readJson } from './http.js';
 
-async function runAi({ repository, ai, apiKey, row, payload, risk }) {
+function providerFromEnv(env) {
+  return { apiKey: env.OPENAI_API_KEY, baseUrl: env.OPENAI_BASE_URL, model: env.OPENAI_MODEL };
+}
+
+async function runAi({ repository, ai, provider, row, payload, risk }) {
   await repository.markProcessing(row.id);
   try {
-    const result = await ai({ apiKey, payload, risk });
+    const result = await ai({ ...provider, payload, risk });
     if (result.status === 'refused') {
       await repository.refuse(row.id, result.responseId);
       await repository.addAttempt(row.id, 'refused', { responseId: result.responseId });
@@ -44,7 +48,7 @@ export async function handleCreateReading(context) {
     if (raced) return json(publicReading(raced));
     throw error;
   }
-  return runAi({ repository, ai: context.ai ?? requestAiReading, apiKey: env.OPENAI_API_KEY, row, payload, risk });
+  return runAi({ repository, ai: context.ai ?? requestAiReading, provider: providerFromEnv(env), row, payload, risk });
 }
 
 export async function handleRetryReading(context) {
@@ -58,5 +62,5 @@ export async function handleRetryReading(context) {
   if (!row) return json({ errorCode: 'not_found' }, { status: 404 });
   if (row.status === 'completed') return json(publicReading(row));
   const risk = { level: row.risk_level ?? 'normal', categories: row.riskCategories ?? [] };
-  return runAi({ repository, ai: context.ai ?? requestAiReading, apiKey: env.OPENAI_API_KEY, row, payload: row.payload, risk });
+  return runAi({ repository, ai: context.ai ?? requestAiReading, provider: providerFromEnv(env), row, payload: row.payload, risk });
 }

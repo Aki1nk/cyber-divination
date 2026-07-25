@@ -47,3 +47,28 @@ test('concurrent idempotent create returns the row inserted by another request',
   assert.equal(response.status, 200);
   assert.equal((await response.json()).id, 'reading-race');
 });
+
+test('create handler passes configured relay settings to the AI client', async () => {
+  let aiInput;
+  const repository = { findByIdempotency: async () => null, create: async () => ({ id: 'relay-create' }), markProcessing: async () => {}, complete: async () => {}, addAttempt: async () => {} };
+  await handleCreateReading({
+    request: request(),
+    env: { OPENAI_API_KEY: 'relay-key', OPENAI_BASE_URL: 'https://tokunex.com/v1', OPENAI_MODEL: 'gpt-5.4-mini' },
+    repository,
+    ai: async (input) => { aiInput = input; return { status: 'completed', reading: {} }; }
+  });
+  assert.deepEqual({ apiKey: aiInput.apiKey, baseUrl: aiInput.baseUrl, model: aiInput.model }, { apiKey: 'relay-key', baseUrl: 'https://tokunex.com/v1', model: 'gpt-5.4-mini' });
+});
+
+test('retry handler passes configured relay settings to the AI client', async () => {
+  let aiInput;
+  const repository = { getForDevice: async () => ({ id: 'relay-retry', payload, risk_level: 'normal', riskCategories: [], status: 'failed' }), markProcessing: async () => {}, complete: async () => {}, addAttempt: async () => {} };
+  await handleRetryReading({
+    request: new Request('https://example.com/retry', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deviceId: payload.deviceId }) }),
+    env: { OPENAI_API_KEY: 'relay-key', OPENAI_BASE_URL: 'https://tokunex.com/v1', OPENAI_MODEL: 'gpt-5.4-mini' },
+    readingId: 'relay-retry',
+    repository,
+    ai: async (input) => { aiInput = input; return { status: 'completed', reading: {} }; }
+  });
+  assert.deepEqual({ apiKey: aiInput.apiKey, baseUrl: aiInput.baseUrl, model: aiInput.model }, { apiKey: 'relay-key', baseUrl: 'https://tokunex.com/v1', model: 'gpt-5.4-mini' });
+});
