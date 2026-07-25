@@ -2,11 +2,7 @@ import { adminCookie, clearAdminCookie, createAdminSession, verifyAdminSecret } 
 import { json, readJson } from '../../_lib/http.js';
 
 export async function onRequestPost({ request, env }) {
-  const missing = [
-    ...(!env.ADMIN_PASSWORD ? ['ADMIN_PASSWORD'] : []),
-    ...(!env.ADMIN_SESSION_SECRET ? ['ADMIN_SESSION_SECRET'] : [])
-  ];
-  if (missing.length) return json({ errorCode: 'admin_not_configured', missing }, { status: 503 });
+  if (!env.ADMIN_PASSWORD || !env.ADMIN_SESSION_SECRET) return json({ errorCode: 'admin_not_configured' }, { status: 503 });
   let body;
   try { body = await readJson(request); } catch (error) { return json({ errorCode: error.code }, { status: 400 }); }
   if (!await verifyAdminSecret(String(body.password ?? ''), env.ADMIN_PASSWORD)) return json({ errorCode: 'invalid_credentials' }, { status: 401 });
