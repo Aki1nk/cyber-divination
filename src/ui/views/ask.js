@@ -34,7 +34,7 @@ export function renderAsk() {
           ${renderTimeFields()}
           ${renderExternalFields()}
         </fieldset>
-        <section class="confirmation-card"><strong>肆 · 确认</strong><p>提交后将生成不可变计算快照。同一问题 24 小时内再次占问，将返回原卦以避免反复占问。</p><p class="cloud-upload-disclosure"><strong>云端上传提示：</strong>所有新占问都会上传问题、背景、排盘事实与本地解读，并使用匿名设备编号调用 OpenAI 生成 AI 深解；云端记录保留 30 天。离线时先保存在本机队列，联网后自动上传。</p><button class="primary-action primary-action--button" type="submit"><span>确认起卦</span><small>本地排盘 · 云端 AI 深解</small></button><p class="form-status" role="status" data-form-status></p></section>
+        <section class="confirmation-card"><strong>肆 · 确认</strong><p>提交后将生成不可变计算快照。同一问题 24 小时内再次占问，将返回原卦以避免反复占问。</p><p class="cloud-upload-disclosure"><strong>云端上传提示：</strong>所有新占问都会上传问题、背景、排盘事实与本地解读，并使用匿名设备编号经第三方 AI 中转服务提交给 GPT-5.4 mini 生成 AI 深解；本站云端记录保留 30 天。中转服务及其上游供应商的数据处理和保留规则以各自政策为准。离线时先保存在本机队列，联网后自动上传。</p><button class="primary-action primary-action--button" type="submit"><span>确认起卦</span><small>本地排盘 · 云端 AI 深解</small></button><p class="form-status" role="status" data-form-status></p></section>
       </form>
     </section>`;
 }
