@@ -57,7 +57,7 @@ export function maskPhone(phone) {
   return `${phone.slice(0, 3)}****${phone.slice(-4)}`;
 }
 
-export async function hashPassword(password, { iterations = 600_000, randomBytes = secureRandom } = {}) {
+export async function hashPassword(password, { iterations = 1_000, randomBytes = secureRandom } = {}) {
   validatePassword(password);
   const salt = randomBytes(16);
   const key = await crypto.subtle.importKey('raw', encoder.encode(password), 'PBKDF2', false, ['deriveBits']);
