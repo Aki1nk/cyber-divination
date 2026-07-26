@@ -22,6 +22,36 @@ test('register consumes a valid invite and starts a session', async () => {
   assert.equal((await response.json()).user.phoneMasked, '138****8000');
 });
 
+test('register preserves the Web Crypto receiver when generating a user id', async () => {
+  const cryptoDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'crypto');
+  const originalCrypto = globalThis.crypto;
+  const brandedCrypto = {
+    subtle: originalCrypto.subtle,
+    getRandomValues: originalCrypto.getRandomValues.bind(originalCrypto),
+    randomUUID() {
+      assert.equal(this, brandedCrypto);
+      return 'user-1';
+    }
+  };
+  Object.defineProperty(globalThis, 'crypto', { configurable: true, value: brandedCrypto });
+
+  try {
+    const response = await handleRegister({
+      request: post('/api/auth/register', { phone: '13900000026', password: 'SafePass1234', inviteCode: 'FIXTEST2026' }),
+      env: { INVITE_CODE_ENCRYPTION_KEY: 'invite-secret' },
+      invites: { findUsable: async () => ({ id: 'invite-1' }) },
+      accounts: { findByPhone: async () => null, register: async () => {} },
+      passwordHasher: async () => ({ algorithm: 'pbkdf2-sha256', iterations: 1, salt: 's', hash: 'h', version: 1 }),
+      tokenFactory: () => 'session-token',
+      tokenHasher: async () => 'session-hash',
+      now: new Date('2026-07-26T00:00:00Z')
+    });
+    assert.equal(response.status, 201);
+  } finally {
+    Object.defineProperty(globalThis, 'crypto', cryptoDescriptor);
+  }
+});
+
 test('login uses generic errors and throttles blocked identities', async () => {
   const blocked = await handleLogin({ request: post('/api/auth/login', { phone: '13800138000', password: '错误密码1234' }), env: {}, attempts: { isBlocked: async () => true }, now: new Date() });
   assert.equal(blocked.status, 429);
