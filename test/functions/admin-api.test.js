@@ -20,9 +20,12 @@ test('admin list requires a valid session and forwards bounded filters', async (
 
 test('admin detail supports view and delete', async () => {
   let deleted = false;
-  const repository = { get: async () => ({ id: 'reading-1', payload: { question: { text: '完整问题' } } }), delete: async () => { deleted = true; } };
+  const repository = { getAdmin: async () => ({ id: 'reading-1', user_nickname: '林', user_phone: '13800138000', payload: { question: { text: '完整问题' } } }), delete: async () => { deleted = true; } };
   const getResponse = await handleAdminDetail({ request: await authorizedRequest('https://example.com/api/admin/readings/reading-1'), env: { ADMIN_SESSION_SECRET: 'secret' }, repository, readingId: 'reading-1', now: new Date('2026-07-25T00:00:00.000Z') });
-  assert.equal((await getResponse.json()).item.payload.question.text, '完整问题');
+  const body = await getResponse.json();
+  assert.equal(body.item.payload.question.text, '完整问题');
+  assert.equal(body.item.user_nickname, '林');
+  assert.equal(body.item.user_phone, '13800138000');
   const deleteResponse = await handleAdminDetail({ request: await authorizedRequest('https://example.com/api/admin/readings/reading-1', 'DELETE'), env: { ADMIN_SESSION_SECRET: 'secret' }, repository, readingId: 'reading-1', now: new Date('2026-07-25T00:00:00.000Z') });
   assert.equal(deleteResponse.status, 204);
   assert.equal(deleted, true);

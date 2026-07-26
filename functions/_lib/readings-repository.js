@@ -49,6 +49,15 @@ export function createReadingsRepository(db, { now = () => new Date(), idFactory
     async get(id) {
       return parseRow(await db.prepare('SELECT * FROM readings WHERE id = ? LIMIT 1').bind(id).first());
     },
+    async getAdmin(id) {
+      return parseRow(await db.prepare(`
+        SELECT readings.*, users.nickname AS user_nickname, users.phone AS user_phone
+        FROM readings
+        LEFT JOIN users ON users.id = readings.user_id
+        WHERE readings.id = ?
+        LIMIT 1
+      `).bind(id).first());
+    },
     async getForDevice(id, deviceId) {
       return parseRow(await db.prepare('SELECT * FROM readings WHERE id = ? AND device_id = ? LIMIT 1').bind(id, deviceId).first());
     },
@@ -62,14 +71,15 @@ export function createReadingsRepository(db, { now = () => new Date(), idFactory
       const values = [];
       if (q) {
         const search = `%${escapeLike(q)}%`;
-        where.push("(question LIKE ? ESCAPE '\\' OR background LIKE ? ESCAPE '\\' OR device_id LIKE ? ESCAPE '\\')");
+        where.push("(readings.question LIKE ? ESCAPE '\\' OR readings.background LIKE ? ESCAPE '\\' OR readings.device_id LIKE ? ESCAPE '\\')");
         values.push(search, search, search);
       }
-      if (status) { where.push('status = ?'); values.push(status); }
-      if (category) { where.push('category = ?'); values.push(category); }
+      if (status) { where.push('readings.status = ?'); values.push(status); }
+      if (category) { where.push('readings.category = ?'); values.push(category); }
       const clause = where.length ? ` WHERE ${where.join(' AND ')}` : '';
-      const totalRow = await db.prepare(`SELECT COUNT(*) AS count FROM readings${clause}`).bind(...values).first();
-      const rows = await db.prepare(`SELECT id, device_id, created_at, expires_at, category, question, status, risk_level, error_code FROM readings${clause} ORDER BY created_at DESC LIMIT ? OFFSET ?`).bind(...values, safeSize, (safePage - 1) * safeSize).all();
+      const source = ' FROM readings LEFT JOIN users ON users.id = readings.user_id';
+      const totalRow = await db.prepare(`SELECT COUNT(*) AS count${source}${clause}`).bind(...values).first();
+      const rows = await db.prepare(`SELECT readings.id, readings.device_id, readings.created_at, readings.expires_at, readings.category, readings.question, readings.status, readings.risk_level, readings.error_code, users.nickname AS user_nickname, users.phone AS user_phone${source}${clause} ORDER BY readings.created_at DESC LIMIT ? OFFSET ?`).bind(...values, safeSize, (safePage - 1) * safeSize).all();
       return { items: rows.results ?? [], total: Number(totalRow?.count ?? 0), page: safePage, pageSize: safeSize };
     },
     async delete(id) {
