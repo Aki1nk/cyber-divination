@@ -24,6 +24,11 @@ test('hashes and verifies passwords with versioned PBKDF2 parameters', async () 
   assert.equal(await verifyPassword('错误密码123', stored), false);
 });
 
+test('uses the verified Pages Functions PBKDF2 cost by default', async () => {
+  const stored = await hashPassword('安全密码1234', { randomBytes: () => new Uint8Array(16).fill(7) });
+  assert.equal(stored.iterations, 100_000);
+});
+
 test('creates opaque session tokens and hardened cookies', async () => {
   const token = createSessionToken(() => new Uint8Array(32).fill(9));
   assert.match(token, /^[A-Za-z0-9_-]{40,}$/);
