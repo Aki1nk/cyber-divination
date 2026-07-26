@@ -26,6 +26,24 @@ test('repository filters admin list with bounded pagination', async () => {
   assert.equal(db.calls[1].values.at(-2), 100);
 });
 
+test('repository joins users for admin reading list and detail', async () => {
+  const db = fakeDb([
+    { count: 1 },
+    { results: [{ id: 'reading-1', user_nickname: '林', user_phone: '13800138000' }] },
+    { id: 'reading-1', user_nickname: '林', user_phone: '13800138000' }
+  ]);
+  const repository = createReadingsRepository(db);
+
+  const list = await repository.list();
+  const detail = await repository.getAdmin('reading-1');
+
+  assert.match(db.calls[0].sql, /LEFT JOIN users/);
+  assert.match(db.calls[1].sql, /users\.nickname AS user_nickname/);
+  assert.match(db.calls[2].sql, /LEFT JOIN users/);
+  assert.equal(list.items[0].user_phone, '13800138000');
+  assert.equal(detail.user_nickname, '林');
+});
+
 test('repository treats admin search wildcards as literal text', async () => {
   const db = fakeDb([{ count: 0 }, { results: [] }]);
   await createReadingsRepository(db).list({ q: '100%_完成' });

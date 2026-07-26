@@ -25,7 +25,7 @@ export async function handleAdminDetail(context) {
   if (!await authorized(context)) return json({ errorCode: 'unauthorized' }, { status: 401 });
   const repository = context.repository ?? createReadingsRepository(context.env.DB);
   if (context.request.method === 'GET') {
-    const item = await repository.get(context.readingId);
+    const item = await repository.getAdmin(context.readingId);
     return item ? json({ item }) : json({ errorCode: 'not_found' }, { status: 404 });
   }
   if (context.request.method === 'DELETE') {
