@@ -40,7 +40,7 @@ export async function handleRegister(context) {
   if (!invite) return json({ errorCode: 'invalid_invite' }, { status: 400 });
   const current = nowOf(context);
   const token = (context.tokenFactory ?? createSessionToken)();
-  const user = { id: (context.idFactory ?? crypto.randomUUID)(), phone, nickname, createdAt: current.toISOString() };
+  const user = { id: (context.idFactory ?? (() => crypto.randomUUID()))(), phone, nickname, createdAt: current.toISOString() };
   try {
     await accounts.register({ user, password: await (context.passwordHasher ?? hashPassword)(password), inviteId: invite.id, session: { tokenHash: await (context.tokenHasher ?? hashToken)(token), createdAt: current.toISOString(), expiresAt: new Date(current.getTime() + 30 * DAY).toISOString() } });
   } catch (error) { return json({ errorCode: error.code === 'invalid_invite' ? 'invalid_invite' : 'registration_failed' }, { status: error.code === 'invalid_invite' ? 400 : 500 }); }
@@ -103,4 +103,3 @@ export async function handleAccount(context) {
   await accountsOf(context).deleteAccount(user.id);
   return new Response(null, { status: 204, headers: { 'Cache-Control': 'no-store', 'Set-Cookie': clearUserSessionCookie() } });
 }
-
